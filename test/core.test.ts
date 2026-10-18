@@ -124,13 +124,13 @@ test('cours et présentation : reconnaissance, paramètres et sorties distinctes
   assert.equal(identify('`' + text + '`'), undefined);
   assert.equal(identify('/* ' + text + ' */'), undefined);
   const type = identify(text)!.type;
-  assert.deepEqual(variantLabels(type), { enonce: 'Cours', corrige: 'Présentation' });
-  assert.deepEqual(variantLabels('td'), { enonce: 'Énoncé', corrige: 'Corrigé' });
-  for (const [variant, format] of [['enonce', 'cours'], ['corrige', 'presentation']] as const) {
-    assert.deepEqual(previewArguments('/bank', source, variant, true, type), ['--root', '/bank', '--ignore-system-fonts', '--input', `format=${format}`, `/bank/${source}`]);
-    assert.equal(pdfTarget(source, variant, false, type), `build/chapitres/automates/support/${format}-support.pdf`);
-    assert.equal(pdfFilename(source, variant, type), `${format}-support.pdf`);
-    assert.equal(pdfFilename('chapitres/langages/cours-kleene.typ', variant, type), `${format}-kleene.pdf`);
+  assert.deepEqual(variantLabels(type), { enonce: 'Cours', corrige: 'Cours corrigé', presentation: 'Présentation' });
+  assert.deepEqual(variantLabels('td'), { enonce: 'Énoncé', corrige: 'Corrigé', presentation: '' });
+  for (const [variant, format] of [['enonce', 'cours'], ['corrige', 'cours'], ['presentation', 'presentation']] as const) {
+    assert.deepEqual(previewArguments('/bank', source, variant, true, type), ['--root', '/bank', '--ignore-system-fonts', '--input', `format=${format}`, '--input', `corrige=${variant === 'corrige'}`, `/bank/${source}`]);
+    assert.equal(pdfTarget(source, variant, false, type), `build/chapitres/automates/support/${format}-support${variant === 'corrige' ? '-cor' : ''}.pdf`);
+    assert.equal(pdfFilename(source, variant, type), `${format}-support${variant === 'corrige' ? '-cor' : ''}.pdf`);
+    assert.equal(pdfFilename('chapitres/langages/cours-kleene.typ', variant, type), `${format}-kleene${variant === 'corrige' ? '-cor' : ''}.pdf`);
   }
 });
 
@@ -283,7 +283,8 @@ test('lecteur : F5/F6 depuis le PDF, la barre et l’iframe active, avec validat
   const document = {
     body: { dataset: { channel: 'test' }, classList: { toggle() {} } },
     getElementById: (id: string) => { if (!elements.has(id)) elements.set(id, element()); return elements.get(id); },
-    createElement: element
+    createElement: element,
+    querySelectorAll: () => ['enonce', 'corrige', 'presentation'].map(id => ({ id }))
   };
   const window = { addEventListener: (type: string, listener: (event: any) => void) => listeners.set(type, [...listeners.get(type) ?? [], listener]) };
   runInNewContext(await readFile(path.join(process.cwd(), 'media/viewer.mjs'), 'utf8'), {
@@ -291,6 +292,8 @@ test('lecteur : F5/F6 depuis le PDF, la barre et l’iframe active, avec validat
     acquireVsCodeApi: () => ({ postMessage: (message: unknown) => messages.push(message) }),
     ResizeObserver: class { observe() {} }
   });
+  elements.get('presentation').onclick();
+  assert.equal(messages.at(-1).type, 'presentation', 'La troisième variante est sélectionnable');
   const dispatch = (type: string, event: any) => listeners.get(type)?.forEach(listener => listener(event));
   for (const [key, variant] of [['F5', 'enonce'], ['F6', 'corrige']]) {
     for (const input of [false, true]) {
@@ -304,7 +307,7 @@ test('lecteur : F5/F6 depuis le PDF, la barre et l’iframe active, avec validat
       assert.equal(messages.length, count);
     }
   }
-  dispatch('message', { data: { channel: 'test', type: 'show', hasCode: true, native: true, variant: 'enonce', labels: { enonce: 'Cours', corrige: 'Présentation' }, sessions: { enonce: 'http://localhost:123/enonce', corrige: 'http://localhost:123/corrige' }, tokens: { enonce: 'secret', corrige: 'other' } } });
+  dispatch('message', { data: { channel: 'test', type: 'show', hasCode: true, native: true, variant: 'enonce', labels: { enonce: 'Cours', corrige: 'Cours corrigé', presentation: 'Présentation' }, sessions: { enonce: 'http://localhost:123/enonce', corrige: 'http://localhost:123/corrige' }, tokens: { enonce: 'secret', corrige: 'other' } } });
   assert.equal(elements.get('code').hidden, false, 'Le bouton de code apparaît pour les feuilles avec code');
   elements.get('code').onclick();
   assert.equal(messages.at(-1).type, 'code', 'Le bouton demande l’ouverture du code à l’extension');
@@ -312,7 +315,7 @@ test('lecteur : F5/F6 depuis le PDF, la barre et l’iframe active, avec validat
   const frames: any[] = [];
   document.createElement = () => { const frame = element(); frames.push(frame); return frame; };
   dispatch('message', { data: { channel: 'test', type: 'reset' } });
-  dispatch('message', { data: { channel: 'test', type: 'show', native: true, variant: 'enonce', labels: { enonce: 'Énoncé', corrige: 'Corrigé' }, sessions: { enonce: 'http://localhost:123/enonce', corrige: 'http://localhost:123/corrige' }, tokens: { enonce: 'secret', corrige: 'other' } } });
+  dispatch('message', { data: { channel: 'test', type: 'show', native: true, variant: 'enonce', labels: { enonce: 'Énoncé', corrige: 'Corrigé', presentation: '' }, sessions: { enonce: 'http://localhost:123/enonce', corrige: 'http://localhost:123/corrige' }, tokens: { enonce: 'secret', corrige: 'other' } } });
   assert.equal(elements.get('code').hidden, true, 'Le bouton disparaît pour une feuille sans code');
   const event = { source: frames[0].contentWindow, origin: 'http://localhost:123', data: { type: 'selectVariant', token: 'secret', variant: 'corrige' } };
   const count = messages.length;

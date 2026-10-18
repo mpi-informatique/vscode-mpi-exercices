@@ -151,7 +151,7 @@ export async function run(api: any, extension: vscode.Extension<any>): Promise<v
     assert.equal(previews.entries.size, 0);
     const courseSource = 'support.typ';
     const courseUri = vscode.Uri.file(path.join(temporary, courseSource));
-    await writeFile(courseUri.fsPath, `#import "/load.typ": cours-et-presentation, article-only, slides-only
+    await writeFile(courseUri.fsPath, `#import "/load.typ": cours-et-presentation, article-only, slides-only, solution
 #show: cours-et-presentation.with(titre: "Support fictif")
 = Partie commune
 == Contenu commun
@@ -160,6 +160,8 @@ Un contenu partagé entre les deux formats.
 Une explication réservée au cours.]
 #slides-only[== Repère de la présentation
 Une indication réservée à la présentation.]
+#solution[== Réponse réservée
+Une solution de l'exercice.]
 `);
     const courseEditor = await vscode.window.showTextDocument(courseUri, { viewColumn: vscode.ViewColumn.One });
     const coursePreview = await previews.open(previewBank, courseSource, 'enonce');
@@ -171,10 +173,11 @@ Une indication réservée à la présentation.]
     const courseSession = coursePreview.sessions.get('enonce');
     for (const [variant, marker, excluded, format] of [
       ['enonce', 'Repère du cours', 'Repère de la présentation', 'cours'],
-      ['corrige', 'Repère de la présentation', 'Repère du cours', 'presentation']
+      ['corrige', 'Repère du cours', 'Repère de la présentation', 'cours'],
+      ['presentation', 'Repère de la présentation', 'Repère du cours', 'presentation']
     ] as const) {
       await coursePreview.select(variant);
-      assert.equal(coursePreview.panel.title, `${format}-support.pdf`);
+      assert.equal(coursePreview.panel.title, `${format}-support${variant === 'corrige' ? '-cor' : ''}.pdf`);
       let renderedOutline: unknown;
       coursePreview.sessions.get(variant)!.connection.onNotification('tinymist/documentOutline', outline => { renderedOutline = outline; });
       const edit = new vscode.WorkspaceEdit();
@@ -182,7 +185,8 @@ Une indication réservée à la présentation.]
       await vscode.workspace.applyEdit(edit);
       await until(() => JSON.stringify(renderedOutline)?.includes(marker) ?? false, `${format} : contenu propre au format affiché`);
       assert.ok(!JSON.stringify(renderedOutline).includes(excluded), `${format} : contenu de l'autre format absent`);
-      if (variant === 'corrige') {
+      assert.equal(JSON.stringify(renderedOutline).includes('Réponse réservée'), variant !== 'enonce', 'La solution est masquée dans le cours normal');
+      if (variant === 'presentation') {
         await until(() => courseProgress.some(progress => progress.total > 1), 'Nombre total de diapositives affiché');
       }
     }
@@ -196,18 +200,20 @@ Une indication réservée à la présentation.]
       const pdf = await courseFallback.open(previewBank, courseSource, 'enonce');
       assert.equal(pdf.panel.title, 'cours-support.pdf');
       await pdf.select('corrige');
+      assert.equal(pdf.panel.title, 'cours-support-cor.pdf');
+      await pdf.select('presentation');
       assert.equal(pdf.panel.title, 'presentation-support.pdf');
-      for (const format of ['cours', 'presentation']) assert.ok((await stat(path.join(temporary, 'build/support', `${format}-support.pdf`))).size > 1000);
+      for (const filename of ['cours-support.pdf', 'cours-support-cor.pdf', 'presentation-support.pdf']) assert.ok((await stat(path.join(temporary, 'build/support', filename))).size > 1000);
     } finally { courseFallback.dispose(); }
     vscode.workspace.updateWorkspaceFolders(vscode.workspace.workspaceFolders!.length, 0, { uri: previewBank.scope, name: previewBank.name });
     await until(async () => {
       try { return (await api.revealSheet(courseSource)).bank.root === temporary; }
       catch { return false; }
     }, 'Le support cours/présentation est découvert');
-    for (const [command, format] of [['enonce', 'cours'], ['corrige', 'presentation']]) {
+    for (const [command, filename] of [['enonce', 'cours-support.pdf'], ['corrige', 'cours-support-cor.pdf']]) {
       await vscode.commands.executeCommand(`mpiExercices.${command}`, courseUri);
       assert.equal(api.previewCount(), 1, 'Les commandes F5/F6 réutilisent le même panneau');
-      assert.ok(vscode.window.tabGroups.all.some(group => group.tabs.some(tab => tab.label === `${format}-support.pdf`)), `La commande ${command} affiche ${format}`);
+      assert.ok(vscode.window.tabGroups.all.some(group => group.tabs.some(tab => tab.label === filename)), `La commande ${command} affiche ${filename}`);
     }
   } finally {
     for (const socket of sockets) socket.close();

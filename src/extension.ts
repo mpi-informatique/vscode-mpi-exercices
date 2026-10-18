@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import * as path from 'node:path';
 import { existsSync } from 'node:fs';
 import { readFile, realpath } from 'node:fs/promises';
-import { Filters, facets, labels, matches, parseCatalogue, pdfTarget, pdfFilename, safeSource } from './core';
+import { Filters, Variant, facets, labels, matches, parseCatalogue, pdfTarget, pdfFilename, safeSource } from './core';
 import { identify, sourceExclusions, typeLabels, typeLabel } from './documents';
 import { Bank, Runner } from './runner';
 import { Previews } from './preview';
@@ -186,7 +186,7 @@ export async function activate(context: vscode.ExtensionContext) {
     if (vscode.workspace.textDocuments.some(document => document.isDirty && document.uri.scheme === 'file' && document.uri.fsPath.startsWith(source.bank.root + path.sep))) throw new Error('Enregistrez les fichiers modifiés de la banque avant d’exporter le PDF.');
     await runner.run(source.bank, targets);
   }
-  async function exportPdf(preview: Source, variant: 'enonce' | 'corrige'): Promise<void> {
+  async function exportPdf(preview: Source, variant: Variant): Promise<void> {
     const destination = await vscode.window.showSaveDialog({ defaultUri: vscode.Uri.file(path.join(preview.bank.root, pdfFilename(preview.source, variant, preview.documentType))), filters: { PDF: ['pdf'] } });
     if (!destination) return;
     const target = pdfTarget(preview.source, variant, preview.documentType === 'copie', preview.documentType);

@@ -122,7 +122,8 @@ async function pdf(data) {
     if (revision === epoch) vscode.postMessage({ type: 'pdfReady', pages: doc.numPages });
   } finally { await loading.destroy(); worker.destroy(); port.terminate(); URL.revokeObjectURL(url); }
 }
-for (const id of ['enonce', 'corrige', 'save', 'code', 'jumps', 'theme', 'fullscreen', 'restart']) {
+const variants = [...document.querySelectorAll('[data-variant]')].map(button => button.id);
+for (const id of [...variants, 'save', 'code', 'jumps', 'theme', 'fullscreen', 'restart']) {
   document.getElementById(id).onclick = () => vscode.postMessage({ type: id });
 }
 window.addEventListener('message', ({ data }) => {
@@ -149,7 +150,7 @@ window.addEventListener('message', ({ data }) => {
     }
   }
   for (const [variant, frame] of frames) { frame.hidden = variant !== data.variant; controls(frame); }
-  for (const variant of ['enonce', 'corrige']) document.getElementById(variant).setAttribute('aria-pressed', String(variant === data.variant));
+  for (const variant of variants) document.getElementById(variant).setAttribute('aria-pressed', String(variant === data.variant));
   document.getElementById('jumps').setAttribute('aria-pressed', String(data.jumps));
   document.getElementById('theme').setAttribute('aria-pressed', String(data.dark));
   status.hidden = !!data.pdf || frames.has(data.variant);
@@ -160,7 +161,7 @@ window.addEventListener('message', event => {
   for (const [variant, frame] of frames) {
     if (event.source !== frame.contentWindow || event.origin !== new URL(frame.src).origin || data.token !== state.tokens?.[variant]) continue;
     if (data.type === 'selectVariant') {
-      if (state.variant === variant && ['enonce', 'corrige'].includes(data.variant)) vscode.postMessage({ type: data.variant });
+      if (state.variant === variant && variants.includes(data.variant)) vscode.postMessage({ type: data.variant });
       return;
     }
     if (data.type === 'pageStep') {

@@ -1,13 +1,5 @@
 export * from '@mpi-informatique/exercices-core';
-import { pdfFilename as exercisePdfFilename, safeSource, type Variant } from '@mpi-informatique/exercices-core';
-
-export function outputVariant(variant: Variant, documentType?: string): string {
-  return documentType === 'cours-presentation' ? (variant === 'enonce' ? 'cours' : 'presentation') : variant;
-}
-
-export function variantLabels(documentType?: string): Record<Variant, string> {
-  return documentType === 'cours-presentation' ? { enonce: 'Cours', corrige: 'Présentation' } : { enonce: 'Énoncé', corrige: 'Corrigé' };
-}
+import { compilationInputs, pdfFilename as exercisePdfFilename, safeSource, type Variant } from '@mpi-informatique/exercices-core';
 
 export function pdfFilename(source: string, variant: Variant, documentType?: string): string {
   safeSource(source);
@@ -23,8 +15,8 @@ export function pdfTarget(source: string, variant: Variant, _copy = false, docum
 
 export function previewArguments(root: string, source: string, variant: Variant, direct = false, documentType?: string): string[] {
   safeSource(source);
-  const input = documentType === 'cours-presentation' ? `format=${outputVariant(variant, documentType)}` : `corrige=${variant === 'corrige'}`;
-  const args = ['--root', root, '--ignore-system-fonts', '--input', input];
+  const args = ['--root', root, '--ignore-system-fonts'];
+  for (const [name, value] of Object.entries(compilationInputs(variant, documentType))) args.push('--input', `${name}=${value}`);
   if (!direct) args.push('--input', `exercice=/${source}`);
   args.push(`${root}/${direct ? source : 'templates/fiche.typ'}`);
   return args;

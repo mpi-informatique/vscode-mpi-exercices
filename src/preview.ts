@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import * as path from 'node:path';
 import { randomBytes } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
-import { Variant, pdfTarget, pdfFilename, variantLabels } from './core';
+import { Variant, availableVariants, pdfTarget, pdfFilename, variantLabels } from './core';
 import { Bank, Runner } from './runner';
 import * as tinymist from './tinymist';
 import { errorStatus } from './errors';
@@ -75,13 +75,13 @@ export class Previews implements vscode.Disposable {
     if (this.disposed || !this.hasTinymist() || !vscode.workspace.isTrusted) return;
     const current = this.entries.get(`${bank.root}/${source}`);
     if (current && (!current.native || current.dark !== undefined)) return;
-    const variants: Variant[] = current ? (['enonce', 'corrige'] as Variant[]).filter(variant => variant !== current.variant && !current.sessions.has(variant)) : ['enonce', 'corrige'];
-    if (!variants.length) return;
     const epoch = ++this.preparationEpoch;
     const document = await vscode.workspace.openTextDocument(vscode.Uri.file(path.join(bank.root, source)));
     if (this.disposed || epoch !== this.preparationEpoch || this.entries.get(`${bank.root}/${source}`) !== current) return;
     const info = identify(document.getText(), source);
     if (!info) { this.prepared.clear(); return; }
+    const variants = availableVariants(info.type).filter(variant => !current || (variant !== current.variant && !current.sessions.has(variant)));
+    if (!variants.length) return;
     await this.prepared.warm(this.preparationKey(bank, source, info.type), variants,
       (variant, signal) => this.startTinymist(bank, source, variant as Variant, { signal, background: true, canJump: () => false }),
       error => { if (!this.disposed) this.fallback.output.appendLine(`Préparation de Tinymist [${source}] : ${error}`); });
@@ -110,6 +110,8 @@ export class Previews implements vscode.Disposable {
     const document = await vscode.workspace.openTextDocument(vscode.Uri.file(path.join(bank.root, source)));
     const documentType = identify(document.getText(), source)?.type;
     const labels = variantLabels(documentType);
+    const variants = availableVariants(documentType);
+    if (!variants.includes(variant)) variant = variants[0];
     const panel = vscode.window.createWebviewPanel('mpiExercices.pdf', pdfFilename(source, variant, documentType), { viewColumn: vscode.ViewColumn.Beside, preserveFocus: true }, {
       enableScripts: true, retainContextWhenHidden: true, localResourceRoots: [vscode.Uri.joinPath(this.context.extensionUri, 'media'), vscode.Uri.joinPath(this.context.extensionUri, 'dist', 'pdfjs')]
     });
@@ -134,7 +136,7 @@ export class Previews implements vscode.Disposable {
       if (ready && !disposed) await post({ type: 'show', variant: preview.variant, labels, hasCode, native: preview.native, jumps: preview.jumps, dark: isDark(), pdf: pdfs.get(preview.variant), sessions: Object.fromEntries([...sessions].map(([v, s]) => [v, s.url])), tokens: Object.fromEntries([...sessions].map(([v, s]) => [v, s.id])) });
     };
     const select = async (value: Variant) => {
-      if (disposed) return;
+      if (disposed || !variants.includes(value)) return;
       if (!preview.native && !pdfs.has(value)) {
         if (vscode.workspace.textDocuments.some(doc => doc.isDirty && doc.uri.fsPath.startsWith(bank.root + path.sep))) throw new Error('Sans Tinymist, enregistrez les fichiers de la banque pour actualiser l’aperçu PDF.');
         await post({ type: 'status', message: 'Compilation du PDF…' });
@@ -178,7 +180,7 @@ export class Previews implements vscode.Disposable {
     const listener = panel.webview.onDidReceiveMessage(async message => {
       try {
         if (message?.type === 'ready') { ready = true; await describe(); }
-        else if (message?.type === 'enonce' || message?.type === 'corrige') await preview.select(message.type);
+        else if (variants.includes(message?.type)) await preview.select(message.type);
         else if (message?.type === 'jumps') await preview.toggleJumps();
         else if (message?.type === 'theme') await preview.toggleTheme();
         else if (message?.type === 'fullscreen') await vscode.commands.executeCommand('workbench.action.toggleZenMode');
@@ -201,7 +203,7 @@ export class Previews implements vscode.Disposable {
     webview.html = `<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
       <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}' ${webview.cspSource} 'wasm-unsafe-eval'; style-src ${webview.cspSource} 'unsafe-inline'; font-src ${webview.cspSource} data: blob:; worker-src ${webview.cspSource} blob:; connect-src ${webview.cspSource}; img-src data: blob: ${webview.cspSource}; frame-src http://127.0.0.1:* https:;">
       <link rel="stylesheet" href="${uri('viewer.css')}"></head><body data-channel="${channel}" data-pdfjs="${escape(webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'dist', 'pdfjs')).toString())}/">
-      <nav aria-label="Outils de l'aperçu"><button id="enonce" aria-pressed="true">${escape(labels.enonce)}</button><button id="corrige" aria-pressed="false">${escape(labels.corrige)}</button>
+      <nav aria-label="Outils de l'aperçu">${variants.map(value => `<button id="${value}" data-variant aria-pressed="${value === variant}">${escape(labels[value])}</button>`).join('')}
       <span class="spacer" aria-hidden="true"></span>
       <button id="code" title="Ouvrir les codes associés" aria-label="Ouvrir les codes associés" hidden><svg viewBox="0 0 24 24"><path d="m8 7-5 5 5 5m8-10 5 5-5 5m-3-13-2 16"/></svg></button>
       <div id="page-progress" role="group" aria-label="Pagination">

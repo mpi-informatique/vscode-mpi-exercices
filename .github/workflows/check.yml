@@ -18,7 +18,7 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           repository: mpi-informatique/exercices
-          ref: d5eaec6464fabf4f4fc23831c9db289e90a5eecc
+          ref: abc6ca08d885c6e327872732468f9753e8ea00a8
           path: exercices
           persist-credentials: false
       - uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24 # v31.11.1
