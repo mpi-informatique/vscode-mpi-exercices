@@ -169,6 +169,15 @@
         }
       },
       {
+        "command": "mpiExercices.currentCorrige",
+        "title": "Voir le corrigé",
+        "category": "Exercices MPI",
+        "icon": {
+          "light": "media/preview-corrected.svg",
+          "dark": "media/preview-corrected.svg"
+        }
+      },
+      {
         "command": "mpiExercices.compileBoth",
         "title": "Compiler l'énoncé et le corrigé",
         "category": "Exercices MPI"
@@ -334,6 +343,11 @@
           "command": "mpiExercices.collapsesheets",
           "when": "view == mpiExercices.sheets",
           "group": "display@1"
+        },
+        {
+          "command": "mpiExercices.currentCorrige",
+          "when": "view == mpiExercices.current",
+          "group": "navigation@1"
         }
       ],
       "view/item/context": [
@@ -527,6 +541,10 @@
         },
         {
           "command": "mpiExercices.collapsesheets",
+          "when": "false"
+        },
+        {
+          "command": "mpiExercices.currentCorrige",
           "when": "false"
         }
       ]

@@ -44,6 +44,7 @@ export class CurrentFile implements vscode.TreeDataProvider<Node>, vscode.Dispos
       }
     }
   }
+  get uri(): vscode.Uri | undefined { return this.current?.uri; }
   getChildren(node?: Node): Node[] { return node?.children ?? (node ? [] : this.nodes); }
   getTreeItem(node: Node): vscode.TreeItem {
     if (node.member) return memberItem(node.member);

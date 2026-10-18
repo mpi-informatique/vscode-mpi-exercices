@@ -16,7 +16,7 @@ Prérequis : VS Code ≥ 1.100 et Nix avec `nix-command` et `flakes`. Tinymist e
 
 ## Utilisation
 
-- **Fichier** : plan du document ouvert, questions, parties et composition cliquables.
+- **Fichier** : plan du document ouvert, questions, parties et composition cliquables. Le bouton **Voir le corrigé** dans son en-tête ouvre le corrigé de ce document, même lorsque le focus est dans un autre éditeur ou dans l’aperçu.
 - **Exercices** : exercices réutilisables de la banque, avec recherche et filtres de métadonnées.
 - **Documents** : TD, devoirs, concours, copies et types personnalisés, avec recherche et filtre par type.
 

@@ -278,6 +278,9 @@ export async function activate(context: vscode.ExtensionContext) {
   register('refresh', async () => { await discovery; if (!banks.length) await discoverQueued(); for (const bank of banks) { if (hasCatalogue(bank)) await runner.run(bank, ['catalogue']); await load(bank); await scan(bank, sheets); } });
   register('source', async (argument?: BrowserNode | vscode.Uri) => { const source = await chooseSource(argument); if (source) await vscode.window.showTextDocument(vscode.Uri.file(path.join(source.bank.root, source.source))); });
   register('code', async (argument?: BrowserNode | vscode.Uri) => { const source = await chooseSource(argument); if (source) await openAssociatedCode(source); });
+  register('currentCorrige', async () => {
+    if (currentFile.uri) await vscode.commands.executeCommand('mpiExercices.corrige', currentFile.uri);
+  });
   for (const variant of ['enonce', 'corrige'] as const) register(variant, async (argument?: BrowserNode | vscode.Uri) => { const source = await chooseSource(argument); if (source) await previews.open(source.bank, source.source, variant); });
   for (const variant of ['enonce', 'corrige'] as const) register('download' + (variant === 'corrige' ? 'Corrige' : 'Enonce'), async (argument?: BrowserNode | vscode.Uri) => {
     const source = await chooseSource(argument);

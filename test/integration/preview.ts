@@ -215,6 +215,13 @@ Une solution de l'exercice.]
       assert.equal(api.previewCount(), 1, 'Les commandes F5/F6 réutilisent le même panneau');
       assert.ok(vscode.window.tabGroups.all.some(group => group.tabs.some(tab => tab.label === filename)), `La commande ${command} affiche ${filename}`);
     }
+    await vscode.commands.executeCommand('mpiExercices.enonce', courseUri);
+    const notes = vscode.Uri.file(path.join(temporary, 'notes.md'));
+    await writeFile(notes.fsPath, 'Notes fictives du test.');
+    await vscode.window.showTextDocument(notes, { viewColumn: vscode.ViewColumn.One });
+    await vscode.commands.executeCommand('mpiExercices.currentCorrige');
+    assert.equal(api.previewCount(), 1, 'Le bouton du panneau Fichier réutilise le même aperçu');
+    assert.ok(vscode.window.tabGroups.all.some(group => group.tabs.some(tab => tab.label === 'cours-support-cor.pdf')), 'Le bouton ouvre le corrigé du fichier du plan, même si un autre éditeur a le focus');
   } finally {
     for (const socket of sockets) socket.close();
     previews.dispose(); runner.dispose();
