@@ -1,6 +1,7 @@
 :root { color-scheme: light dark; }
-body { margin: 0; padding: 0; height: 100vh; display: flex; flex-direction: column; color: var(--vscode-foreground); background: var(--vscode-editor-background); font: var(--vscode-font-size)/1.4 var(--vscode-font-family); }
-nav { display: flex; align-items: center; gap: 6px; padding: 4px 8px; border-bottom: 1px solid var(--vscode-panel-border); }
+html, body { height: 100%; overflow: hidden; }
+body { margin: 0; padding: 0; display: flex; flex-direction: column; color: var(--vscode-foreground); background: var(--vscode-editor-background); font: var(--vscode-font-size)/1.4 var(--vscode-font-family); }
+nav { display: flex; flex: none; flex-wrap: wrap; align-items: center; gap: 6px; padding: 4px 8px; border-bottom: 1px solid var(--vscode-panel-border); }
 button { color: inherit; background: transparent; border: 0; border-radius: 3px; padding: 4px 6px; cursor: pointer; }
 button:hover { background: var(--vscode-toolbar-hoverBackground); }
 button:focus-visible { outline: 1px solid var(--vscode-focusBorder); }
@@ -16,6 +17,7 @@ svg { vertical-align: middle; width: 18px; height: 18px; fill: none; stroke: cur
 #status { margin: 8px; }
 #compile-error { margin: 0; padding: 8px; white-space: pre-wrap; max-height: 120px; overflow: auto; color: var(--vscode-errorForeground); background: var(--vscode-inputValidation-errorBackground); border-bottom: 1px solid var(--vscode-inputValidation-errorBorder); }
 main { flex: 1; min-height: 0; overflow: auto; }
+.native-preview main { overflow: hidden; }
 .page { position: relative; width: fit-content; margin: 12px auto; background: white; }
 canvas { display: block; }
 .pdf-dark canvas { filter: invert(1) hue-rotate(180deg); }
@@ -26,5 +28,5 @@ canvas { display: block; }
 .textLayer .markedContent { display: contents; }
 .textLayer br { user-select: none; }
 button:disabled { opacity: .4; cursor: default; }
-iframe { width: 100%; height: 100%; border: 0; }
+iframe { display: block; width: 100%; height: 100%; border: 0; }
 [hidden] { display: none !important; }

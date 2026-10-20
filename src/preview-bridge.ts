@@ -6,7 +6,11 @@ export function bridgeHtml(html: string, upstream: string, token: string): strin
   return html.replaceAll('new URL("/", window.location.href)', `new URL("/", ${JSON.stringify(upstream)})`)
     .replaceAll('.hover .typst-text {', 'html.exercices-jumps .hover .typst-text {')
     .replaceAll('.typst-text:hover {', 'html.exercices-jumps .typst-text:hover {')
-    .replace('</head>', `<style>html:not(.exercices-jumps) .typst-jump-ripple,html:not(.exercices-jumps) .typst-debug-react-ripple{display:none!important}</style>
+    .replace('</head>', `<style>
+html, body { width: 100%; height: 100%; overflow: hidden; }
+#typst-container, #typst-container-main { min-width: 0; min-height: 0; }
+html:not(.exercices-jumps) .typst-jump-ripple,html:not(.exercices-jumps) .typst-debug-react-ripple{display:none!important}
+</style>
 <script>
 (() => {
   const token = ${JSON.stringify(token)};

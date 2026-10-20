@@ -133,6 +133,7 @@ window.addEventListener('message', ({ data }) => {
   if (data.type === 'compileError') { compileError.textContent = data.message; compileError.hidden = !data.message; }
   if (data.type !== 'show') return;
   state = data;
+  document.body.classList.toggle('native-preview', !!data.native);
   document.getElementById('code').hidden = !data.hasCode;
   if (data.native) showProgress(pagination.get(data.variant));
   document.body.classList.toggle('pdf-dark', !data.native && data.dark);
