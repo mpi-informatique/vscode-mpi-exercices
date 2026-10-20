@@ -5,4 +5,5 @@
 - Conserver les données nominatives, évaluations et scans dans `exercices-prive`. Utiliser des copies fictives dans les tests.
 - Les commandes de compilation appellent `scripts/build.py` du dépôt concerné, avec Nix en mode automatique si `flake.nix` existe.
 - Vérifier avec `nix develop . -c npm test`, puis les suites d'intégration concernées. Produire un VSIX avec `nix develop . -c npm run package`.
+- Installer systématiquement le VSIX produit dans VS Code avec `code --install-extension releases/vscode-mpi-exercices-0.1.0.vsix --force` (adapter le nom du fichier à la version courante).
 - Contrôler le diff, annoncer les vérifications réellement effectuées et faire un commit directement sur `main`.
