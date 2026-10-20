@@ -82,8 +82,8 @@ let rendered;
 let workerSource;
 const controls = frame => {
   const style = getComputedStyle(document.body);
-  const scrollbarColors = Object.fromEntries(['background', 'hoverBackground', 'activeBackground'].map(name => [name, style.getPropertyValue('--vscode-scrollbarSlider-' + name).trim()]));
-  frame.contentWindow?.postMessage({ token: state.tokens?.[frame.dataset.variant], jumps: state.jumps, scrollbarColors }, new URL(frame.src).origin);
+  const scrollbarForeground = style.getPropertyValue('--vscode-foreground').trim();
+  frame.contentWindow?.postMessage({ token: state.tokens?.[frame.dataset.variant], jumps: state.jumps, scrollbarForeground }, new URL(frame.src).origin);
 };
 new MutationObserver(() => { for (const frame of frames.values()) controls(frame); }).observe(document.body, { attributes: true, attributeFilter: ['class', 'style'] });
 async function pdf(data) {

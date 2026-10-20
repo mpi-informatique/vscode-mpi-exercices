@@ -1,8 +1,10 @@
-// Shared by the webview and the embedded Tinymist document.
+// Match the thin native scrollbars of Codex's sidebar in both preview documents.
 export const scrollbarStyle = `
-::-webkit-scrollbar { width: 14px; height: 14px; background: transparent; }
-::-webkit-scrollbar-track, ::-webkit-scrollbar-corner { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--vscode-scrollbarSlider-background, rgba(121, 121, 121, .4)); }
-::-webkit-scrollbar-thumb:hover { background: var(--vscode-scrollbarSlider-hoverBackground, rgba(100, 100, 100, .7)); }
-::-webkit-scrollbar-thumb:active { background: var(--vscode-scrollbarSlider-activeBackground, rgba(191, 191, 191, .4)); }
+:where(#viewers, #compile-error, #typst-container-main) {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklab, var(--vscode-foreground, #ccc) 8%, transparent) transparent;
+}
+:where(#viewers, #compile-error, #typst-container-main):is(:hover, :active) {
+  scrollbar-color: color-mix(in oklab, var(--vscode-foreground, #ccc) 12%, transparent) transparent;
+}
 `;

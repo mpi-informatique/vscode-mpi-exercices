@@ -56,10 +56,7 @@ html:not(.exercices-jumps) .typst-jump-ripple,html:not(.exercices-jumps) .typst-
       schedule();
       return;
     }
-    for (const name of ['background', 'hoverBackground', 'activeBackground']) {
-      const color = event.data.scrollbarColors?.[name];
-      if (typeof color === 'string') document.documentElement.style.setProperty('--vscode-scrollbarSlider-' + name, color);
-    }
+    if (typeof event.data.scrollbarForeground === 'string') document.documentElement.style.setProperty('--vscode-foreground', event.data.scrollbarForeground);
     document.documentElement.classList.toggle('exercices-jumps', !!event.data.jumps);
     if (!event.data.jumps) { document.querySelectorAll('.hover').forEach(e => e.classList.remove('hover')); getSelection()?.removeAllRanges(); }
     schedule();
