@@ -289,7 +289,9 @@ test('lecteur : F5/F6 depuis le PDF, la barre et l’iframe active, avec validat
   const window = { addEventListener: (type: string, listener: (event: any) => void) => listeners.set(type, [...listeners.get(type) ?? [], listener]) };
   runInNewContext(await readFile(path.join(process.cwd(), 'media/viewer.mjs'), 'utf8'), {
     document, window, URL,
+    getComputedStyle: () => ({ getPropertyValue: () => '' }),
     acquireVsCodeApi: () => ({ postMessage: (message: unknown) => messages.push(message) }),
+    MutationObserver: class { observe() {} },
     ResizeObserver: class { observe() {} }
   });
   elements.get('presentation').onclick();

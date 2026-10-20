@@ -10,6 +10,7 @@ import { copyDirectory } from './copy-inputs';
 import { identify } from './documents';
 import { Preparation } from './preparation';
 import { associatedCodes, openAssociatedCode } from './code-files';
+import { scrollbarStyle } from './scrollbars';
 
 export interface Preview {
   bank: Bank; source: string; variant: Variant; panel: vscode.WebviewPanel;
@@ -202,7 +203,7 @@ export class Previews implements vscode.Disposable {
     // Frame URLs originate only from the extension, never from source contents.
     webview.html = `<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
       <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}' ${webview.cspSource} 'wasm-unsafe-eval'; style-src ${webview.cspSource} 'unsafe-inline'; font-src ${webview.cspSource} data: blob:; worker-src ${webview.cspSource} blob:; connect-src ${webview.cspSource}; img-src data: blob: ${webview.cspSource}; frame-src http://127.0.0.1:* https:;">
-      <link rel="stylesheet" href="${uri('viewer.css')}"></head><body data-channel="${channel}" data-pdfjs="${escape(webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'dist', 'pdfjs')).toString())}/">
+      <link rel="stylesheet" href="${uri('viewer.css')}"><style>${scrollbarStyle}</style></head><body data-channel="${channel}" data-pdfjs="${escape(webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'dist', 'pdfjs')).toString())}/">
       <nav aria-label="Outils de l'aperçu">${variants.map(value => `<button id="${value}" data-variant aria-pressed="${value === variant}">${escape(labels[value])}</button>`).join('')}
       <span class="spacer" aria-hidden="true"></span>
       <button id="code" title="Ouvrir les codes associés" aria-label="Ouvrir les codes associés" hidden><svg viewBox="0 0 24 24"><path d="m8 7-5 5 5 5m8-10 5 5-5 5m-3-13-2 16"/></svg></button>

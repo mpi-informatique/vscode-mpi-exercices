@@ -1,5 +1,6 @@
 import { createServer } from 'node:http';
 import { AddressInfo } from 'node:net';
+import { scrollbarStyle } from './scrollbars';
 
 // The upstream page owns hover effects; blocking only LSP jumps cannot disable them.
 export function bridgeHtml(html: string, upstream: string, token: string): string {
@@ -7,6 +8,7 @@ export function bridgeHtml(html: string, upstream: string, token: string): strin
     .replaceAll('.hover .typst-text {', 'html.exercices-jumps .hover .typst-text {')
     .replaceAll('.typst-text:hover {', 'html.exercices-jumps .typst-text:hover {')
     .replace('</head>', `<style>
+${scrollbarStyle}
 html, body { width: 100%; height: 100%; overflow: hidden; }
 #typst-container, #typst-container-main { min-width: 0; min-height: 0; }
 html:not(.exercices-jumps) .typst-jump-ripple,html:not(.exercices-jumps) .typst-debug-react-ripple{display:none!important}
@@ -53,6 +55,10 @@ html:not(.exercices-jumps) .typst-jump-ripple,html:not(.exercices-jumps) .typst-
       if (page && viewport) viewport.scrollTo({ top: viewport.scrollTop + page.getBoundingClientRect().top - viewport.getBoundingClientRect().top });
       schedule();
       return;
+    }
+    for (const name of ['background', 'hoverBackground', 'activeBackground']) {
+      const color = event.data.scrollbarColors?.[name];
+      if (typeof color === 'string') document.documentElement.style.setProperty('--vscode-scrollbarSlider-' + name, color);
     }
     document.documentElement.classList.toggle('exercices-jumps', !!event.data.jumps);
     if (!event.data.jumps) { document.querySelectorAll('.hover').forEach(e => e.classList.remove('hover')); getSelection()?.removeAllRanges(); }
