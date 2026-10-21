@@ -38,22 +38,22 @@ Glisser un fichier sur un dossier permet de le déplacer dans son dépôt : les 
 
 Dans un fichier `.typ`, saisir **`!` pour ouvrir les suggestions**, puis compléter le préfixe et choisir le snippet **MPI — …**. Chaque snippet possède un seul préfixe. Tab passe au champ suivant ; Maj+Tab revient au précédent. **Snippets: Insert Snippet** permet aussi d'insérer le texte sélectionné dans un bloc.
 
-Chaque bloc numéroté possède une variante avec titre, repérée par `-titre` :
+Les noms et préfixes des blocs sont en français, sans accents dans les préfixes. `!exemple` désigne le titre souligné en ligne et `!exemple-bloc` le bloc numéroté. Chaque bloc numéroté possède une variante avec titre, repérée par `-titre` :
 
 | Bloc | Sans titre | Avec titre |
 | --- | --- | --- |
-| Théorème | `!theorem` | `!theorem-titre` |
+| Théorème | `!theoreme` | `!theoreme-titre` |
 | Définition | `!definition` | `!definition-titre` |
 | Proposition | `!proposition` | `!proposition-titre` |
-| Lemme | `!lemma` | `!lemma-titre` |
-| Corollaire | `!corollary` | `!corollary-titre` |
-| Propriété | `!property` | `!property-titre` |
-| Exemple encadré | `!example` | `!example-titre` |
-| Exercice de cours | `!exercise` | `!exercise-titre` |
-| Problème | `!problem` | `!problem-titre` |
-| Algorithme | `!algorithm` | `!algorithm-titre` |
+| Lemme | `!lemme` | `!lemme-titre` |
+| Corollaire | `!corollaire` | `!corollaire-titre` |
+| Propriété | `!propriete` | `!propriete-titre` |
+| Exemple encadré | `!exemple-bloc` | `!exemple-bloc-titre` |
+| Exercice de cours | `!exercice` | `!exercice-titre` |
+| Problème | `!probleme` | `!probleme-titre` |
+| Algorithme | `!algorithme` | `!algorithme-titre` |
 
-Par exemple, `!exercise-titre` insère `#exercise(title: [Titre])[…]`. Le titre affiché prend la forme **Exercice 2 : Monoïdes et taille**, avec numérotation automatique et un titre saisi dans le premier champ. Sans titre, seul **Exercice 2** est affiché. Ce rendu utilise la bibliothèque MPI mise à jour.
+Par exemple, `!exercice-titre` insère `#exercise(title: [Titre])[…]`. Le titre affiché prend la forme **Exercice 2 : Monoïdes et taille**, avec numérotation automatique et un titre saisi dans le premier champ. Sans titre, seul **Exercice 2** est affiché. Ce rendu utilise la bibliothèque MPI mise à jour.
 
 | Autre préfixe | Contenu inséré |
 | --- | --- |

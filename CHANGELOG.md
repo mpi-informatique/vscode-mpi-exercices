@@ -2,6 +2,8 @@
 
 ## 0.1.0
 
+- Franciser les noms et les préfixes des blocs numérotés et de leurs variantes avec titre.
+
 - Garder un seul préfixe par snippet et ajouter une variante `-titre` pour chaque bloc numéroté.
 
 - Ajouter `!taille-pres` pour modifier la taille du texte uniquement en présentation, avec champs pour la taille et le contenu.

@@ -10,14 +10,14 @@ export async function run(_api: unknown, extension: vscode.Extension<unknown>): 
   const prefixes = Object.values(snippets).map(snippet => snippet.prefix);
   assert.ok(prefixes.every(prefix => typeof prefix === 'string' && prefix.startsWith('!')), 'Un seul préfixe avec ! par snippet');
   assert.equal(new Set(prefixes).size, prefixes.length, 'Préfixes uniques');
-  for (const functionName of ['theorem', 'definition', 'proposition', 'lemma', 'corollary', 'property', 'example', 'exercise', 'problem', 'algorithm']) {
+  for (const functionName of ['theoreme', 'definition', 'proposition', 'lemme', 'corollaire', 'propriete', 'exemple-bloc', 'exercice', 'probleme', 'algorithme']) {
     assert.ok(prefixes.includes(`!${functionName}`), `Bloc ${functionName}`);
     assert.ok(prefixes.includes(`!${functionName}-titre`), `Variante titrée ${functionName}`);
   }
   const document = await vscode.workspace.openTextDocument({ language: 'typst', content: '' });
   const editor = await vscode.window.showTextDocument(document);
   try {
-    for (const [prefix, functionName, title] of [['solution', 'solution'], ['theorem', 'theorem'], ['slides-only', 'slides-only'], ['article-only', 'article-only'], ['exercise-titre', 'exercise', 'Titre'], ['algorithm-titre', 'algorithm', 'Titre']]) {
+    for (const [prefix, functionName, title] of [['solution', 'solution'], ['theoreme', 'theorem'], ['slides-only', 'slides-only'], ['article-only', 'article-only'], ['exercice-titre', 'exercise', 'Titre'], ['algorithme-titre', 'algorithm', 'Titre']]) {
       await vscode.commands.executeCommand('leaveSnippet');
       await editor.edit(edit => edit.replace(new vscode.Range(document.positionAt(0), document.positionAt(document.getText().length)), ''));
       editor.selection = new vscode.Selection(0, 0, 0, 0);
