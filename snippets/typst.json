@@ -305,5 +305,12 @@
     ],
     "body": "#underline[Attention] : $0",
     "description": "Attention en ligne avec titre souligné"
+  },
+  "MPI — Taille en présentation": {
+    "prefix": [
+      "!taille-pres"
+    ],
+    "body": "#text(size: if sys.inputs.at(\"format\", default: \"cours\") == \"presentation\" { ${1:0.92em} } else { 1em })[${2:${TM_SELECTED_TEXT}}]$0",
+    "description": "Taille du texte modifiée uniquement en présentation ; taille normale dans le cours et le corrigé"
   }
 }

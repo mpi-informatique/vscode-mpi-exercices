@@ -15,9 +15,12 @@ export async function run(): Promise<void> {
       await vscode.commands.executeCommand('hideSuggestWidget');
       await editor.edit(edit => edit.replace(new vscode.Range(document.positionAt(0), document.positionAt(document.getText().length)), ''));
       editor.selection = new vscode.Selection(0, 0, 0, 0);
+      await vscode.commands.executeCommand('workbench.action.focusActiveEditorGroup');
       await vscode.commands.executeCommand('type', { text: '!' });
       await new Promise(resolve => setTimeout(resolve, 500));
       await vscode.commands.executeCommand('type', { text: prefix });
+      // Laisser le menu filtrer le préfixe avant d'accepter sa sélection.
+      await new Promise(resolve => setTimeout(resolve, 500));
       await until(async () => {
         await vscode.commands.executeCommand('acceptSelectedSuggestion');
         return document.getText().startsWith(`#${functionName}[`);

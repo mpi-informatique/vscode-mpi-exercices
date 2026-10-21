@@ -2,6 +2,8 @@
 
 ## 0.1.0
 
+- Ajouter `!taille-pres` pour modifier la taille du texte uniquement en présentation, avec champs pour la taille et le contenu.
+
 - Ajouter `!exemple` et `!attention` pour insérer les titres soulignés correspondants.
 
 - Ajouter `!remarque` pour insérer une remarque en ligne avec titre souligné.

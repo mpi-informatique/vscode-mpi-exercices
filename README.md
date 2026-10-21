@@ -58,6 +58,7 @@ Dans un fichier `.typ`, saisir **`!` pour ouvrir les suggestions**, puis complé
 | `!thmt`, `!theorem-title` | Théorème avec titre et étiquette |
 | `!exsol`, `!exercise-solution` | Exercice de cours suivi de sa solution |
 | `!solpause` | Solution avec `#pause` pour la présentation |
+| `!taille-pres` | Taille du texte en présentation (défaut `0.92em`), taille normale dans le cours et le corrigé |
 | `!question`, `!ques` | Question et solution dans `contenu: (…)` |
 | `!question-bareme`, `!quesb` | Question avec choix des points et étiquette |
 | `!slides-only`, `!slides` | `#slides-only[…]`, contenu réservé aux diapositives |
