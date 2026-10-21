@@ -2,6 +2,8 @@
 
 ## 0.1.0
 
+- Ajouter `!remarque` pour insérer une remarque en ligne avec titre souligné.
+
 - Déclencher les suggestions de snippets avec `!` et ajouter les blocs `slides-only` et `article-only`.
 
 - Ajouter les snippets Typst des cours et de la banque : solutions, théorèmes, exercices, questions et barèmes.

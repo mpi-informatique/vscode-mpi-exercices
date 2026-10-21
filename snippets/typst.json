@@ -96,8 +96,7 @@
   "MPI — remark": {
     "prefix": [
       "!remark",
-      "!rem",
-      "!remarque"
+      "!rem"
     ],
     "body": [
       "#remark[",
@@ -286,5 +285,12 @@
       "$0"
     ],
     "description": "Contenu réservé au cours A4 (Touying, bibliothèque MPI)"
+  },
+  "MPI — Remarque soulignée": {
+    "prefix": [
+      "!remarque"
+    ],
+    "body": "#underline[Remarque] : $0",
+    "description": "Remarque en ligne avec titre souligné"
   }
 }

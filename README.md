@@ -47,7 +47,8 @@ Dans un fichier `.typ`, saisir **`!` pour ouvrir les suggestions**, puis complé
 | `!lemma`, `!lem`, `!lemme` | `#lemma[…]` |
 | `!corollary`, `!cor`, `!corollaire` | `#corollary[…]` |
 | `!property`, `!propriete` | `#property[…]` |
-| `!remark`, `!rem`, `!remarque` | `#remark[…]` |
+| `!remark`, `!rem` | `#remark[…]` |
+| `!remarque` | `#underline[Remarque] : ` |
 | `!example`, `!exemple` | `#example[…]` |
 | `!exercise`, `!ex`, `!exercice` | `#exercise[…]` pour un cours |
 | `!problem`, `!probleme` | `#problem[…]` |
