@@ -23,6 +23,12 @@ import { bankCandidates } from './discovery';
 import { CodeLinks, openAssociatedCode } from './code-files';
 
 export async function activate(context: vscode.ExtensionContext) {
+  context.subscriptions.push(vscode.workspace.onDidChangeTextDocument(event => {
+    if (event.document.languageId !== 'typst' || vscode.window.activeTextEditor?.document !== event.document || event.reason !== undefined) return;
+    if (event.contentChanges.length === 1 && event.contentChanges[0].text === '!' && event.contentChanges[0].rangeLength === 0) {
+      void vscode.commands.executeCommand('editor.action.triggerSuggest');
+    }
+  }));
   const runner = new Runner();
   const recentSources = new RecentSources(context.workspaceState);
   context.subscriptions.push(recentSources, { dispose: disposeEnvironments });

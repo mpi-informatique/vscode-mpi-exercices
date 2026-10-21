@@ -1,8 +1,8 @@
 {
   "MPI — solution": {
     "prefix": [
-      "solution",
-      "sol"
+      "!solution",
+      "!sol"
     ],
     "body": [
       "#solution[",
@@ -14,9 +14,9 @@
   },
   "MPI — theorem": {
     "prefix": [
-      "theorem",
-      "thm",
-      "theoreme"
+      "!theorem",
+      "!thm",
+      "!theoreme"
     ],
     "body": [
       "#theorem[",
@@ -28,8 +28,8 @@
   },
   "MPI — definition": {
     "prefix": [
-      "definition",
-      "def"
+      "!definition",
+      "!def"
     ],
     "body": [
       "#definition[",
@@ -41,8 +41,8 @@
   },
   "MPI — proposition": {
     "prefix": [
-      "proposition",
-      "prop"
+      "!proposition",
+      "!prop"
     ],
     "body": [
       "#proposition[",
@@ -54,9 +54,9 @@
   },
   "MPI — lemma": {
     "prefix": [
-      "lemma",
-      "lem",
-      "lemme"
+      "!lemma",
+      "!lem",
+      "!lemme"
     ],
     "body": [
       "#lemma[",
@@ -68,9 +68,9 @@
   },
   "MPI — corollary": {
     "prefix": [
-      "corollary",
-      "cor",
-      "corollaire"
+      "!corollary",
+      "!cor",
+      "!corollaire"
     ],
     "body": [
       "#corollary[",
@@ -82,8 +82,8 @@
   },
   "MPI — property": {
     "prefix": [
-      "property",
-      "propriete"
+      "!property",
+      "!propriete"
     ],
     "body": [
       "#property[",
@@ -95,9 +95,9 @@
   },
   "MPI — remark": {
     "prefix": [
-      "remark",
-      "rem",
-      "remarque"
+      "!remark",
+      "!rem",
+      "!remarque"
     ],
     "body": [
       "#remark[",
@@ -109,8 +109,8 @@
   },
   "MPI — example": {
     "prefix": [
-      "example",
-      "exemple"
+      "!example",
+      "!exemple"
     ],
     "body": [
       "#example[",
@@ -122,9 +122,9 @@
   },
   "MPI — exercise": {
     "prefix": [
-      "exercise",
-      "ex",
-      "exercice"
+      "!exercise",
+      "!ex",
+      "!exercice"
     ],
     "body": [
       "#exercise[",
@@ -136,8 +136,8 @@
   },
   "MPI — problem": {
     "prefix": [
-      "problem",
-      "probleme"
+      "!problem",
+      "!probleme"
     ],
     "body": [
       "#problem[",
@@ -149,9 +149,9 @@
   },
   "MPI — algorithm": {
     "prefix": [
-      "algorithm",
-      "algo",
-      "algorithme"
+      "!algorithm",
+      "!algo",
+      "!algorithme"
     ],
     "body": [
       "#algorithm[",
@@ -163,8 +163,8 @@
   },
   "MPI — Théorème avec titre": {
     "prefix": [
-      "thmt",
-      "theorem-title"
+      "!thmt",
+      "!theorem-title"
     ],
     "body": [
       "#theorem(title: [${1:Titre}])[",
@@ -176,8 +176,8 @@
   },
   "MPI — Exercice et solution de cours": {
     "prefix": [
-      "exsol",
-      "exercise-solution"
+      "!exsol",
+      "!exercise-solution"
     ],
     "body": [
       "#exercise[",
@@ -192,7 +192,7 @@
   },
   "MPI — Solution avec pause": {
     "prefix": [
-      "solpause"
+      "!solpause"
     ],
     "body": [
       "#solution[",
@@ -205,8 +205,8 @@
   },
   "MPI — Question de banque": {
     "prefix": [
-      "question",
-      "ques"
+      "!question",
+      "!ques"
     ],
     "body": [
       "question(",
@@ -219,8 +219,8 @@
   },
   "MPI — Question avec barème": {
     "prefix": [
-      "question-bareme",
-      "quesb"
+      "!question-bareme",
+      "!quesb"
     ],
     "body": [
       "question(",
@@ -235,8 +235,8 @@
   },
   "MPI — Exercice réutilisable": {
     "prefix": [
-      "exercice-banque",
-      "exbank"
+      "!exercice-banque",
+      "!exbank"
     ],
     "body": [
       "#import \"/load.typ\": exercice, question",
@@ -259,5 +259,32 @@
       "$0"
     ],
     "description": "Fichier complet exportant ex ; adapter les métadonnées au vocabulaire de la banque MPI"
+  },
+  "MPI — slides-only": {
+    "prefix": [
+      "!slides-only",
+      "!slides"
+    ],
+    "body": [
+      "#slides-only[",
+      "  ${1:${TM_SELECTED_TEXT}}",
+      "]",
+      "$0"
+    ],
+    "description": "Contenu réservé aux diapositives (Touying, bibliothèque MPI)"
+  },
+  "MPI — article-only": {
+    "prefix": [
+      "!article-only",
+      "!articles-only",
+      "!article"
+    ],
+    "body": [
+      "#article-only[",
+      "  ${1:${TM_SELECTED_TEXT}}",
+      "]",
+      "$0"
+    ],
+    "description": "Contenu réservé au cours A4 (Touying, bibliothèque MPI)"
   }
 }

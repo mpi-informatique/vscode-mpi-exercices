@@ -20,7 +20,8 @@
   "activationEvents": [
     "workspaceContains:scripts/build.py",
     "workspaceContains:*/scripts/build.py",
-    "workspaceContains:templates/**/*.typ"
+    "workspaceContains:templates/**/*.typ",
+    "onLanguage:typst"
   ],
   "capabilities": {
     "untrustedWorkspaces": {

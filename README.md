@@ -36,30 +36,32 @@ Glisser un fichier sur un dossier permet de le déplacer dans son dépôt : les 
 
 ## Snippets Typst
 
-Dans un fichier `.typ`, saisir un préfixe **sans `#`**, puis choisir le snippet **MPI — …** dans les suggestions (Ctrl+Espace pour les ouvrir). Tab passe au champ suivant ; Maj+Tab revient au précédent. La commande **Snippets: Insert Snippet** permet aussi de choisir un bloc et d’y insérer le texte sélectionné.
+Dans un fichier `.typ`, saisir **`!` pour ouvrir les suggestions**, puis compléter le préfixe (par exemple `!sol`) et choisir le snippet **MPI — …**. Ctrl+Espace permet aussi de rouvrir les suggestions. Tab passe au champ suivant ; Maj+Tab revient au précédent. La commande **Snippets: Insert Snippet** permet aussi de choisir un bloc et d’y insérer le texte sélectionné.
 
 | Préfixes | Contenu inséré |
 | --- | --- |
-| `solution`, `sol` | `#solution[…]` |
-| `theorem`, `thm`, `theoreme` | `#theorem[…]` |
-| `definition`, `def` | `#definition[…]` |
-| `proposition`, `prop` | `#proposition[…]` |
-| `lemma`, `lem`, `lemme` | `#lemma[…]` |
-| `corollary`, `cor`, `corollaire` | `#corollary[…]` |
-| `property`, `propriete` | `#property[…]` |
-| `remark`, `rem`, `remarque` | `#remark[…]` |
-| `example`, `exemple` | `#example[…]` |
-| `exercise`, `ex`, `exercice` | `#exercise[…]` pour un cours |
-| `problem`, `probleme` | `#problem[…]` |
-| `algorithm`, `algo`, `algorithme` | `#algorithm[…]` |
-| `thmt`, `theorem-title` | Théorème avec titre et étiquette |
-| `exsol`, `exercise-solution` | Exercice de cours suivi de sa solution |
-| `solpause` | Solution avec `#pause` pour la présentation |
-| `question`, `ques` | Question et solution dans `contenu: (…)` |
-| `question-bareme`, `quesb` | Question avec choix des points et étiquette |
-| `exercice-banque`, `exbank` | Fichier d’exercice réutilisable exportant `ex` |
+| `!solution`, `!sol` | `#solution[…]` |
+| `!theorem`, `!thm`, `!theoreme` | `#theorem[…]` |
+| `!definition`, `!def` | `#definition[…]` |
+| `!proposition`, `!prop` | `#proposition[…]` |
+| `!lemma`, `!lem`, `!lemme` | `#lemma[…]` |
+| `!corollary`, `!cor`, `!corollaire` | `#corollary[…]` |
+| `!property`, `!propriete` | `#property[…]` |
+| `!remark`, `!rem`, `!remarque` | `#remark[…]` |
+| `!example`, `!exemple` | `#example[…]` |
+| `!exercise`, `!ex`, `!exercice` | `#exercise[…]` pour un cours |
+| `!problem`, `!probleme` | `#problem[…]` |
+| `!algorithm`, `!algo`, `!algorithme` | `#algorithm[…]` |
+| `!thmt`, `!theorem-title` | Théorème avec titre et étiquette |
+| `!exsol`, `!exercise-solution` | Exercice de cours suivi de sa solution |
+| `!solpause` | Solution avec `#pause` pour la présentation |
+| `!question`, `!ques` | Question et solution dans `contenu: (…)` |
+| `!question-bareme`, `!quesb` | Question avec choix des points et étiquette |
+| `!slides-only`, `!slides` | `#slides-only[…]`, contenu réservé aux diapositives |
+| `!article-only`, `!articles-only`, `!article` | `#article-only[…]`, contenu réservé au cours A4 |
+| `!exercice-banque`, `!exbank` | Fichier d’exercice réutilisable exportant `ex` |
 
-Ces blocs utilisent les fonctions de la bibliothèque MPI, à importer dans le document comme dans les modèles de `templates/`. Les environnements encadrés viennent de `theoremes` ; `solution` vient de `/load.typ`. Les snippets de questions s’utilisent en mode code, dans le tuple `contenu`, et incluent leur virgule finale. Pour un nouvel exercice, **F4** conserve la création guidée avec les métadonnées du dépôt ; `exbank` fournit un squelette à adapter manuellement.
+Ces blocs utilisent les fonctions de la bibliothèque MPI, à importer dans le document comme dans les modèles de `templates/`. Les environnements encadrés viennent de `theoremes` ; `solution`, `slides-only` et `article-only` viennent de `/load.typ`. La fonction est bien `article-only` au singulier ; `!articles-only` est un alias de saisie. Les snippets de questions s’utilisent en mode code, dans le tuple `contenu`, et incluent leur virgule finale. Pour un nouvel exercice, **F4** conserve la création guidée avec les métadonnées du dépôt ; `!exbank` fournit un squelette à adapter manuellement.
 
 Pour développer directement un préfixe avec Tab, activer facultativement `"editor.tabCompletion": "onlySnippets"` dans les réglages VS Code.
 
@@ -117,7 +119,7 @@ npm run package
 
 Les tests unitaires couvrent la découverte, les métadonnées, les chemins, la composition et les commandes Python/Nix. Les tests d'intégration ouvrent un profil VS Code isolé, utilisent des documents et des copies fictifs, et ne lisent pas les données d'élèves.
 
-Pour une seule suite : `npm run test:integration -- --suite=edition`. Suites : `decouverte`, `edition`, `apercu`, `demarrage`, `corrections`, `documents`. Les suites publiques utilisent le clone voisin `../exercices`. La suite `corrections` nécessite les outils de `../exercices-prive`, sans en copier les corrections. Les aperçus natifs nécessitent Tinymist installé.
+Pour une seule suite : `npm run test:integration -- --suite=edition`. Suites : `snippets`, `decouverte`, `edition`, `apercu`, `demarrage`, `corrections`, `documents`. Les suites publiques utilisent le clone voisin `../exercices`. La suite `corrections` nécessite les outils de `../exercices-prive`, sans en copier les corrections. Les aperçus natifs nécessitent Tinymist installé.
 
 Variables de test : `MPI_EXERCICES_ROOT` pour le dépôt ouvert, `MPI_PUBLIC_ROOT` pour les outils publics, `MPI_PRIVATE_ROOT` pour les outils privés, `VSCODE_EXECUTABLE` et `TINYMIST_PATH` pour choisir les installations. Consulter [l'organisation du code](scripts/README.md) pour comprendre les différents modules.
 

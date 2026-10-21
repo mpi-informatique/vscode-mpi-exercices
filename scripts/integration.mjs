@@ -4,7 +4,7 @@ import { mkdir, mkdtemp, readdir, rm, writeFile } from 'node:fs/promises';
 import { homedir, tmpdir } from 'node:os';
 import { existsSync } from 'node:fs';
 const root = path.resolve(import.meta.dirname, '..');
-const supported = ['decouverte', 'edition', 'apercu', 'demarrage', 'corrections', 'documents'];
+const supported = ['snippets', 'decouverte', 'edition', 'apercu', 'demarrage', 'corrections', 'documents'];
 const suite = process.argv.find(arg => arg.startsWith('--suite='))?.slice('--suite='.length)
   ?? (process.env.MPI_PRIVATE_TEST ? 'corrections' : '');
 if (suite && !supported.includes(suite)) throw new Error(`Suite inconnue : ${suite}. Choisir ${supported.join(', ')}.`);
