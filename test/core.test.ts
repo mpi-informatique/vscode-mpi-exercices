@@ -263,7 +263,7 @@ test('navigation Tinymist : choisir une page, ignorer les messages étrangers et
   listeners.get('keydown')!({ ...key, target: { closest: () => ({}) } });
   listeners.get('keydown')!({ ...key, ctrlKey: true });
   assert.equal(messages.length, count, 'Les champs de saisie et les raccourcis modifiés restent utilisables');
-  for (const [keyName, variant] of [['F5', 'enonce'], ['F6', 'corrige']]) {
+  for (const [keyName, variant] of [['F5', 'enonce'], ['F6', 'corrige'], ['F7', 'presentation']]) {
     prevented = false;
     listeners.get('keydown')!({ ...key, key: keyName, target: { closest: () => ({}) } });
     assert.equal(prevented, true);
@@ -275,7 +275,7 @@ test('navigation Tinymist : choisir une page, ignorer les messages étrangers et
     assert.equal(messages.length, count);
   }
 });
-test('lecteur : F5/F6 depuis le PDF, la barre et l’iframe active, avec validation des messages', async () => {
+test('lecteur : F5/F6/F7 depuis le PDF, la barre et l’iframe active, avec validation des messages', async () => {
   const listeners = new Map<string, ((event: any) => void)[]>();
   const messages: any[] = [];
   const elements = new Map<string, any>();
@@ -297,7 +297,7 @@ test('lecteur : F5/F6 depuis le PDF, la barre et l’iframe active, avec validat
   elements.get('presentation').onclick();
   assert.equal(messages.at(-1).type, 'presentation', 'La troisième variante est sélectionnable');
   const dispatch = (type: string, event: any) => listeners.get(type)?.forEach(listener => listener(event));
-  for (const [key, variant] of [['F5', 'enonce'], ['F6', 'corrige']]) {
+  for (const [key, variant] of [['F5', 'enonce'], ['F6', 'corrige'], ['F7', 'presentation']]) {
     for (const input of [false, true]) {
       let prevented = false, stopped = false;
       const event = { key, target: { closest: () => input ? {} : null }, preventDefault: () => { prevented = true; }, stopImmediatePropagation: () => { stopped = true; } };

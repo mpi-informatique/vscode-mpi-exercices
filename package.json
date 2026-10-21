@@ -171,6 +171,11 @@
         }
       },
       {
+        "command": "mpiExercices.presentation",
+        "title": "Voir la présentation",
+        "category": "Exercices MPI"
+      },
+      {
         "command": "mpiExercices.currentCorrige",
         "title": "Voir le corrigé",
         "category": "Exercices MPI",
@@ -630,6 +635,11 @@
       {
         "command": "mpiExercices.corrige",
         "key": "f6",
+        "when": "(editorTextFocus && resourceExtname == .typ) || (!inputFocus && focusedView =~ /^mpiExercices\\./)"
+      },
+      {
+        "command": "mpiExercices.presentation",
+        "key": "f7",
         "when": "(editorTextFocus && resourceExtname == .typ) || (!inputFocus && focusedView =~ /^mpiExercices\\./)"
       },
       {

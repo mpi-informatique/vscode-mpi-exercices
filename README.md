@@ -80,12 +80,13 @@ Dans un éditeur Typst ou une liste du panneau, hors des champs de saisie :
 | F4 | Ajouter un exercice | Créer un document |
 | F5 | Afficher l'énoncé | Exporter l'énoncé |
 | F6 | Afficher le corrigé | Exporter le corrigé |
+| F7 | Afficher la présentation du cours | — |
 
-F5 et F6 fonctionnent aussi lorsque le lecteur PDF ou l’aperçu Tinymist a le focus, y compris dans le champ de numéro de page : ils sélectionnent la variante du document affiché.
+F5, F6 et F7 fonctionnent aussi lorsque le lecteur PDF ou l’aperçu Tinymist a le focus, y compris dans le champ de numéro de page : ils sélectionnent la variante du document affiché.
 
 Sur Mac, Fn peut être nécessaire. Échap ou **×** efface les filtres actifs du panneau. **Tout replier** et **Basculer dossiers / liste** sont dans **…**.
 
-Pour un fichier utilisant `#show: cours-et-presentation.with(...)`, **F5** compile et affiche le cours, **F6** le cours corrigé. Les boutons de l'aperçu deviennent **Cours**, **Cours corrigé** et **Présentation**. **Maj+F5** et **Maj+F6** exportent le cours et son corrigé, et le bouton d'export de la présentation produit le PDF des diapositives. Ces fichiers sont nommés `cours-kleene.pdf`, `cours-kleene-cor.pdf` et `presentation-kleene.pdf` pour une source `cours-kleene.typ`.
+Pour un fichier utilisant `#show: cours-et-presentation.with(...)`, **F5** compile et affiche le cours, **F6** le cours corrigé et **F7** la présentation. Les boutons de l'aperçu deviennent **Cours**, **Cours corrigé** et **Présentation**. **Maj+F5** et **Maj+F6** exportent le cours et son corrigé, et le bouton d'export de la présentation produit le PDF des diapositives. Ces fichiers sont nommés `cours-kleene.pdf`, `cours-kleene-cor.pdf` et `presentation-kleene.pdf` pour une source `cours-kleene.typ`.
 
 ## Compilation et aperçu
 

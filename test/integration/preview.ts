@@ -210,9 +210,9 @@ Une solution de l'exercice.]
       try { return (await api.revealSheet(courseSource)).bank.root === temporary; }
       catch { return false; }
     }, 'Le support cours/présentation est découvert');
-    for (const [command, filename] of [['enonce', 'cours-support.pdf'], ['corrige', 'cours-support-cor.pdf']]) {
+    for (const [command, filename] of [['enonce', 'cours-support.pdf'], ['corrige', 'cours-support-cor.pdf'], ['presentation', 'presentation-support.pdf']]) {
       await vscode.commands.executeCommand(`mpiExercices.${command}`, courseUri);
-      assert.equal(api.previewCount(), 1, 'Les commandes F5/F6 réutilisent le même panneau');
+      assert.equal(api.previewCount(), 1, 'Les commandes F5/F6/F7 réutilisent le même panneau');
       assert.ok(vscode.window.tabGroups.all.some(group => group.tabs.some(tab => tab.label === filename)), `La commande ${command} affiche ${filename}`);
     }
     await vscode.commands.executeCommand('mpiExercices.enonce', courseUri);

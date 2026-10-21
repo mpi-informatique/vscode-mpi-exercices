@@ -63,10 +63,10 @@ html:not(.exercices-jumps) .typst-jump-ripple,html:not(.exercices-jumps) .typst-
   });
   addEventListener('keydown', event => {
     if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
-    if (['F5', 'F6'].includes(event.key)) {
+    if (['F5', 'F6', 'F7'].includes(event.key)) {
       event.preventDefault();
       event.stopImmediatePropagation();
-      parent.postMessage({ type: 'selectVariant', token, variant: event.key === 'F5' ? 'enonce' : 'corrige' }, '*');
+      parent.postMessage({ type: 'selectVariant', token, variant: event.key === 'F5' ? 'enonce' : event.key === 'F6' ? 'corrige' : 'presentation' }, '*');
       return;
     }
     if (event.target.closest?.('input, textarea, [contenteditable="true"]') || !['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
