@@ -58,14 +58,14 @@ Dans un fichier `.typ`, saisir **`!` pour ouvrir les suggestions**, puis complé
 | `!thmt`, `!theorem-title` | Théorème avec titre et étiquette |
 | `!exsol`, `!exercise-solution` | Exercice de cours suivi de sa solution |
 | `!solpause` | Solution avec `#pause` pour la présentation |
-| `!taille-pres` | Taille du texte en présentation (défaut `0.92em`), taille normale dans le cours et le corrigé |
+| `!taille-presentation`, `!taille-pres` | `#taille-presentation(0.92em)[…]`, taille modifiée uniquement en présentation |
 | `!question`, `!ques` | Question et solution dans `contenu: (…)` |
 | `!question-bareme`, `!quesb` | Question avec choix des points et étiquette |
 | `!slides-only`, `!slides` | `#slides-only[…]`, contenu réservé aux diapositives |
 | `!article-only`, `!articles-only`, `!article` | `#article-only[…]`, contenu réservé au cours A4 |
 | `!exercice-banque`, `!exbank` | Fichier d’exercice réutilisable exportant `ex` |
 
-Ces blocs utilisent les fonctions de la bibliothèque MPI, à importer dans le document comme dans les modèles de `templates/`. Les environnements encadrés viennent de `theoremes` ; `solution`, `slides-only` et `article-only` viennent de `/load.typ`. La fonction est bien `article-only` au singulier ; `!articles-only` est un alias de saisie. Les snippets de questions s’utilisent en mode code, dans le tuple `contenu`, et incluent leur virgule finale. Pour un nouvel exercice, **F4** conserve la création guidée avec les métadonnées du dépôt ; `!exbank` fournit un squelette à adapter manuellement.
+Ces blocs utilisent les fonctions de la bibliothèque MPI, à importer dans le document comme dans les modèles de `templates/`. Les environnements encadrés viennent de `theoremes` ; `solution`, `slides-only`, `article-only` et `taille-presentation` viennent de `/load.typ`. La fonction est bien `article-only` au singulier ; `!articles-only` est un alias de saisie. Les snippets de questions s’utilisent en mode code, dans le tuple `contenu`, et incluent leur virgule finale. Pour un nouvel exercice, **F4** conserve la création guidée avec les métadonnées du dépôt ; `!exbank` fournit un squelette à adapter manuellement.
 
 Pour développer directement un préfixe avec Tab, activer facultativement `"editor.tabCompletion": "onlySnippets"` dans les réglages VS Code.
 
