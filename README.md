@@ -49,7 +49,9 @@ Dans un fichier `.typ`, saisir **`!` pour ouvrir les suggestions**, puis complé
 | `!property`, `!propriete` | `#property[…]` |
 | `!remark`, `!rem` | `#remark[…]` |
 | `!remarque` | `#underline[Remarque] : ` |
-| `!example`, `!exemple` | `#example[…]` |
+| `!example` | `#example[…]` |
+| `!exemple` | `#underline[Exemple] : ` |
+| `!attention` | `#underline[Attention] : ` |
 | `!exercise`, `!ex`, `!exercice` | `#exercise[…]` pour un cours |
 | `!problem`, `!probleme` | `#problem[…]` |
 | `!algorithm`, `!algo`, `!algorithme` | `#algorithm[…]` |

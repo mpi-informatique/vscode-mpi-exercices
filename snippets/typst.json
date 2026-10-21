@@ -108,8 +108,7 @@
   },
   "MPI — example": {
     "prefix": [
-      "!example",
-      "!exemple"
+      "!example"
     ],
     "body": [
       "#example[",
@@ -292,5 +291,19 @@
     ],
     "body": "#underline[Remarque] : $0",
     "description": "Remarque en ligne avec titre souligné"
+  },
+  "MPI — Exemple": {
+    "prefix": [
+      "!exemple"
+    ],
+    "body": "#underline[Exemple] : $0",
+    "description": "Exemple en ligne avec titre souligné"
+  },
+  "MPI — Attention": {
+    "prefix": [
+      "!attention"
+    ],
+    "body": "#underline[Attention] : $0",
+    "description": "Attention en ligne avec titre souligné"
   }
 }

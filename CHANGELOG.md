@@ -2,6 +2,8 @@
 
 ## 0.1.0
 
+- Ajouter `!exemple` et `!attention` pour insérer les titres soulignés correspondants.
+
 - Ajouter `!remarque` pour insérer une remarque en ligne avec titre souligné.
 
 - Déclencher les suggestions de snippets avec `!` et ajouter les blocs `slides-only` et `article-only`.
