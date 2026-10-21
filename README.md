@@ -34,6 +34,35 @@ Glisser un fichier sur un dossier permet de le déplacer dans son dépôt : les 
 
 **Ouvrir les codes associés** est accessible depuis la barre de l'éditeur Typst, la palette de commandes et le menu contextuel des exercices et documents. Le bouton **Codes associés** apparaît aussi dans l'aperçu lorsqu'il y a du code. Un seul fichier s'ouvre directement ; plusieurs fichiers donnent un choix. La recherche suit les imports de la feuille et retrouve aussi les codes placés dans le dossier propre à chaque sujet. Elle tient compte des modifications Typst non enregistrées. Les codes s'ouvrent dans l'éditeur VS Code et l'aperçu reste ouvert. Dans un `.typ`, Ctrl/Cmd+clic sur un chemin littéral de code ouvre directement ce fichier, dans la banque publique comme dans la banque privée.
 
+## Snippets Typst
+
+Dans un fichier `.typ`, saisir un préfixe **sans `#`**, puis choisir le snippet **MPI — …** dans les suggestions (Ctrl+Espace pour les ouvrir). Tab passe au champ suivant ; Maj+Tab revient au précédent. La commande **Snippets: Insert Snippet** permet aussi de choisir un bloc et d’y insérer le texte sélectionné.
+
+| Préfixes | Contenu inséré |
+| --- | --- |
+| `solution`, `sol` | `#solution[…]` |
+| `theorem`, `thm`, `theoreme` | `#theorem[…]` |
+| `definition`, `def` | `#definition[…]` |
+| `proposition`, `prop` | `#proposition[…]` |
+| `lemma`, `lem`, `lemme` | `#lemma[…]` |
+| `corollary`, `cor`, `corollaire` | `#corollary[…]` |
+| `property`, `propriete` | `#property[…]` |
+| `remark`, `rem`, `remarque` | `#remark[…]` |
+| `example`, `exemple` | `#example[…]` |
+| `exercise`, `ex`, `exercice` | `#exercise[…]` pour un cours |
+| `problem`, `probleme` | `#problem[…]` |
+| `algorithm`, `algo`, `algorithme` | `#algorithm[…]` |
+| `thmt`, `theorem-title` | Théorème avec titre et étiquette |
+| `exsol`, `exercise-solution` | Exercice de cours suivi de sa solution |
+| `solpause` | Solution avec `#pause` pour la présentation |
+| `question`, `ques` | Question et solution dans `contenu: (…)` |
+| `question-bareme`, `quesb` | Question avec choix des points et étiquette |
+| `exercice-banque`, `exbank` | Fichier d’exercice réutilisable exportant `ex` |
+
+Ces blocs utilisent les fonctions de la bibliothèque MPI, à importer dans le document comme dans les modèles de `templates/`. Les environnements encadrés viennent de `theoremes` ; `solution` vient de `/load.typ`. Les snippets de questions s’utilisent en mode code, dans le tuple `contenu`, et incluent leur virgule finale. Pour un nouvel exercice, **F4** conserve la création guidée avec les métadonnées du dépôt ; `exbank` fournit un squelette à adapter manuellement.
+
+Pour développer directement un préfixe avec Tab, activer facultativement `"editor.tabCompletion": "onlySnippets"` dans les réglages VS Code.
+
 ## Raccourcis
 
 Dans un éditeur Typst ou une liste du panneau, hors des champs de saisie :

@@ -1,0 +1,263 @@
+{
+  "MPI — solution": {
+    "prefix": [
+      "solution",
+      "sol"
+    ],
+    "body": [
+      "#solution[",
+      "  ${1:${TM_SELECTED_TEXT}}",
+      "]",
+      "$0"
+    ],
+    "description": "Solution de cours, visible dans le corrigé (bibliothèque MPI)"
+  },
+  "MPI — theorem": {
+    "prefix": [
+      "theorem",
+      "thm",
+      "theoreme"
+    ],
+    "body": [
+      "#theorem[",
+      "  ${1:${TM_SELECTED_TEXT}}",
+      "]",
+      "$0"
+    ],
+    "description": "Théorème numéroté (bibliothèque MPI)"
+  },
+  "MPI — definition": {
+    "prefix": [
+      "definition",
+      "def"
+    ],
+    "body": [
+      "#definition[",
+      "  ${1:${TM_SELECTED_TEXT}}",
+      "]",
+      "$0"
+    ],
+    "description": "Définition numérotée (bibliothèque MPI)"
+  },
+  "MPI — proposition": {
+    "prefix": [
+      "proposition",
+      "prop"
+    ],
+    "body": [
+      "#proposition[",
+      "  ${1:${TM_SELECTED_TEXT}}",
+      "]",
+      "$0"
+    ],
+    "description": "Proposition numérotée (bibliothèque MPI)"
+  },
+  "MPI — lemma": {
+    "prefix": [
+      "lemma",
+      "lem",
+      "lemme"
+    ],
+    "body": [
+      "#lemma[",
+      "  ${1:${TM_SELECTED_TEXT}}",
+      "]",
+      "$0"
+    ],
+    "description": "Lemme numéroté (bibliothèque MPI)"
+  },
+  "MPI — corollary": {
+    "prefix": [
+      "corollary",
+      "cor",
+      "corollaire"
+    ],
+    "body": [
+      "#corollary[",
+      "  ${1:${TM_SELECTED_TEXT}}",
+      "]",
+      "$0"
+    ],
+    "description": "Corollaire numéroté (bibliothèque MPI)"
+  },
+  "MPI — property": {
+    "prefix": [
+      "property",
+      "propriete"
+    ],
+    "body": [
+      "#property[",
+      "  ${1:${TM_SELECTED_TEXT}}",
+      "]",
+      "$0"
+    ],
+    "description": "Propriété numérotée (bibliothèque MPI)"
+  },
+  "MPI — remark": {
+    "prefix": [
+      "remark",
+      "rem",
+      "remarque"
+    ],
+    "body": [
+      "#remark[",
+      "  ${1:${TM_SELECTED_TEXT}}",
+      "]",
+      "$0"
+    ],
+    "description": "Remarque numérotée (bibliothèque MPI)"
+  },
+  "MPI — example": {
+    "prefix": [
+      "example",
+      "exemple"
+    ],
+    "body": [
+      "#example[",
+      "  ${1:${TM_SELECTED_TEXT}}",
+      "]",
+      "$0"
+    ],
+    "description": "Exemple numéroté (bibliothèque MPI)"
+  },
+  "MPI — exercise": {
+    "prefix": [
+      "exercise",
+      "ex",
+      "exercice"
+    ],
+    "body": [
+      "#exercise[",
+      "  ${1:${TM_SELECTED_TEXT}}",
+      "]",
+      "$0"
+    ],
+    "description": "Exercice encadré dans un cours (bibliothèque MPI)"
+  },
+  "MPI — problem": {
+    "prefix": [
+      "problem",
+      "probleme"
+    ],
+    "body": [
+      "#problem[",
+      "  ${1:${TM_SELECTED_TEXT}}",
+      "]",
+      "$0"
+    ],
+    "description": "Problème encadré (bibliothèque MPI)"
+  },
+  "MPI — algorithm": {
+    "prefix": [
+      "algorithm",
+      "algo",
+      "algorithme"
+    ],
+    "body": [
+      "#algorithm[",
+      "  ${1:${TM_SELECTED_TEXT}}",
+      "]",
+      "$0"
+    ],
+    "description": "Algorithme encadré (bibliothèque MPI)"
+  },
+  "MPI — Théorème avec titre": {
+    "prefix": [
+      "thmt",
+      "theorem-title"
+    ],
+    "body": [
+      "#theorem(title: [${1:Titre}])[",
+      "  ${2:${TM_SELECTED_TEXT}}",
+      "] <${3:thm-etiquette}>",
+      "$0"
+    ],
+    "description": "Théorème avec titre et étiquette pour les renvois @ (bibliothèque MPI)"
+  },
+  "MPI — Exercice et solution de cours": {
+    "prefix": [
+      "exsol",
+      "exercise-solution"
+    ],
+    "body": [
+      "#exercise[",
+      "  ${1:Énoncé}",
+      "]",
+      "#solution[",
+      "  ${2:Solution}",
+      "]",
+      "$0"
+    ],
+    "description": "Exercice encadré suivi de sa solution dans un cours (bibliothèque MPI)"
+  },
+  "MPI — Solution avec pause": {
+    "prefix": [
+      "solpause"
+    ],
+    "body": [
+      "#solution[",
+      "  #pause",
+      "  ${1:${TM_SELECTED_TEXT}}",
+      "]",
+      "$0"
+    ],
+    "description": "Solution révélée après une pause en présentation (bibliothèque MPI)"
+  },
+  "MPI — Question de banque": {
+    "prefix": [
+      "question",
+      "ques"
+    ],
+    "body": [
+      "question(",
+      "  [${1:Énoncé}],",
+      "  solution: [${2:Solution}],",
+      "),",
+      "$0"
+    ],
+    "description": "Question dans le tuple contenu: (...) d’un exercice, sans # (bibliothèque MPI)"
+  },
+  "MPI — Question avec barème": {
+    "prefix": [
+      "question-bareme",
+      "quesb"
+    ],
+    "body": [
+      "question(",
+      "  [${1:Énoncé}],",
+      "  solution: [${2:Solution}],",
+      "  bareme: ${3|0.25,0.5,1,1.5,2,2.5,3,3.5,4|},",
+      "  label: <${4:q-etiquette}>,",
+      "),",
+      "$0"
+    ],
+    "description": "Question avec points et étiquette dans contenu: (...) (bibliothèque MPI)"
+  },
+  "MPI — Exercice réutilisable": {
+    "prefix": [
+      "exercice-banque",
+      "exbank"
+    ],
+    "body": [
+      "#import \"/load.typ\": exercice, question",
+      "",
+      "#let ex = exercice(",
+      "  meta: (",
+      "    titre: \"${1:Titre}\",",
+      "    chapitres: (\"${2:graphes}\",),",
+      "    difficulte: ${3|1,2,3,4,5|},",
+      "    niveaux: (\"${4:MPI}\",),",
+      "    duree: (${5:0}, ${6:20}),",
+      "  ),",
+      "  contenu: (",
+      "    question(",
+      "      [${7:Énoncé}],",
+      "      solution: [${8:Solution}],",
+      "    ),",
+      "  ),",
+      ")",
+      "$0"
+    ],
+    "description": "Fichier complet exportant ex ; adapter les métadonnées au vocabulaire de la banque MPI"
+  }
+}

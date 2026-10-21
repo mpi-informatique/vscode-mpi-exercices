@@ -10,7 +10,8 @@
     "vscode": "^1.100.0"
   },
   "categories": [
-    "Other"
+    "Other",
+    "Snippets"
   ],
   "main": "./dist/extension.js",
   "extensionKind": [
@@ -654,6 +655,12 @@
         "command": "mpiExercices.resetSheets",
         "key": "escape",
         "when": "focusedView == mpiExercices.sheets && mpiExercices.searchActive.sheets && !inputFocus"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "typst",
+        "path": "./snippets/typst.json"
       }
     ]
   },

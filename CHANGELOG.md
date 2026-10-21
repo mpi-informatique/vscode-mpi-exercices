@@ -2,6 +2,8 @@
 
 ## 0.1.0
 
+- Ajouter les snippets Typst des cours et de la banque : solutions, théorèmes, exercices, questions et barèmes.
+
 - Utiliser le logo MPI comme icône de l'extension.
 
 - Automatiser la publication Marketplace et des VSIX GitHub à partir des tags stables.
