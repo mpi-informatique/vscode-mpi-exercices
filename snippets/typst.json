@@ -284,9 +284,7 @@
   "MPI — slides-only": {
     "prefix": "!slides-only",
     "body": [
-      "#slides-only[",
-      "  ${1:${TM_SELECTED_TEXT}}",
-      "]",
+      "#slides-only[${1:${TM_SELECTED_TEXT}}]",
       "$0"
     ],
     "description": "Contenu réservé aux diapositives (Touying, bibliothèque MPI)"
