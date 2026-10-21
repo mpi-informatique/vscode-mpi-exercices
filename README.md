@@ -66,11 +66,12 @@ Par exemple, `!exercice-titre` insère `#exercice(titre: [Titre])[…]`. Le titr
 | `!taille-presentation` | `#taille-presentation(0.92em)[…]` |
 | `!question` | Question et solution dans `contenu: (…)` |
 | `!question-bareme` | Question avec points et étiquette |
+| `!nouvelle-diapositive` | `#nouvelle-diapositive()` : conserve le titre, sans saut dans le cours |
 | `!slides-only` | Contenu réservé aux diapositives |
 | `!article-only` | Contenu réservé au cours A4 |
 | `!exercice-banque` | Fichier d'exercice réutilisable exportant `ex` |
 
-Ces blocs utilisent les fonctions de la bibliothèque MPI, à importer comme dans les modèles de `templates/`. Les environnements encadrés utilisent les fonctions françaises de `theoremes` et le paramètre `titre:` ; `solution`, `slides-only`, `article-only` et `taille-presentation` viennent de `/load.typ`. Les questions s'utilisent en mode code dans le tuple `contenu` et incluent leur virgule finale. **F4** conserve la création guidée avec les métadonnées du dépôt.
+Ces blocs utilisent les fonctions de la bibliothèque MPI, à importer comme dans les modèles de `templates/`. Les environnements encadrés utilisent les fonctions françaises de `theoremes` et le paramètre `titre:` ; `solution`, `slides-only`, `article-only`, `nouvelle-diapositive` et `taille-presentation` viennent de `/load.typ`. Les questions s'utilisent en mode code dans le tuple `contenu` et incluent leur virgule finale. **F4** conserve la création guidée avec les métadonnées du dépôt.
 
 Pour développer directement un préfixe avec Tab, activer facultativement `"editor.tabCompletion": "onlySnippets"` dans les réglages VS Code.
 
