@@ -2,6 +2,8 @@
 
 ## 0.1.0
 
+- Garder un seul préfixe par snippet et ajouter une variante `-titre` pour chaque bloc numéroté.
+
 - Ajouter `!taille-pres` pour modifier la taille du texte uniquement en présentation, avec champs pour la taille et le contenu.
 
 - Ajouter `!exemple` et `!attention` pour insérer les titres soulignés correspondants.

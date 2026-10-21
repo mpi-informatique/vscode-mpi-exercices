@@ -36,36 +36,41 @@ Glisser un fichier sur un dossier permet de le déplacer dans son dépôt : les 
 
 ## Snippets Typst
 
-Dans un fichier `.typ`, saisir **`!` pour ouvrir les suggestions**, puis compléter le préfixe (par exemple `!sol`) et choisir le snippet **MPI — …**. Ctrl+Espace permet aussi de rouvrir les suggestions. Tab passe au champ suivant ; Maj+Tab revient au précédent. La commande **Snippets: Insert Snippet** permet aussi de choisir un bloc et d’y insérer le texte sélectionné.
+Dans un fichier `.typ`, saisir **`!` pour ouvrir les suggestions**, puis compléter le préfixe et choisir le snippet **MPI — …**. Chaque snippet possède un seul préfixe. Tab passe au champ suivant ; Maj+Tab revient au précédent. **Snippets: Insert Snippet** permet aussi d'insérer le texte sélectionné dans un bloc.
 
-| Préfixes | Contenu inséré |
+Chaque bloc numéroté possède une variante avec titre, repérée par `-titre` :
+
+| Bloc | Sans titre | Avec titre |
+| --- | --- | --- |
+| Théorème | `!theorem` | `!theorem-titre` |
+| Définition | `!definition` | `!definition-titre` |
+| Proposition | `!proposition` | `!proposition-titre` |
+| Lemme | `!lemma` | `!lemma-titre` |
+| Corollaire | `!corollary` | `!corollary-titre` |
+| Propriété | `!property` | `!property-titre` |
+| Exemple encadré | `!example` | `!example-titre` |
+| Exercice de cours | `!exercise` | `!exercise-titre` |
+| Problème | `!problem` | `!problem-titre` |
+| Algorithme | `!algorithm` | `!algorithm-titre` |
+
+Par exemple, `!exercise-titre` insère `#exercise(title: [Titre])[…]`. Le titre affiché prend la forme **Exercice 2 : Monoïdes et taille**, avec numérotation automatique et un titre saisi dans le premier champ. Sans titre, seul **Exercice 2** est affiché. Ce rendu utilise la bibliothèque MPI mise à jour.
+
+| Autre préfixe | Contenu inséré |
 | --- | --- |
-| `!solution`, `!sol` | `#solution[…]` |
-| `!theorem`, `!thm`, `!theoreme` | `#theorem[…]` |
-| `!definition`, `!def` | `#definition[…]` |
-| `!proposition`, `!prop` | `#proposition[…]` |
-| `!lemma`, `!lem`, `!lemme` | `#lemma[…]` |
-| `!corollary`, `!cor`, `!corollaire` | `#corollary[…]` |
-| `!property`, `!propriete` | `#property[…]` |
-| `!remark`, `!rem` | `#remark[…]` |
+| `!solution` | Solution de cours |
+| `!exsol` | Exercice de cours suivi de sa solution |
+| `!solpause` | Solution avec `#pause` |
 | `!remarque` | `#underline[Remarque] : ` |
-| `!example` | `#example[…]` |
 | `!exemple` | `#underline[Exemple] : ` |
 | `!attention` | `#underline[Attention] : ` |
-| `!exercise`, `!ex`, `!exercice` | `#exercise[…]` pour un cours |
-| `!problem`, `!probleme` | `#problem[…]` |
-| `!algorithm`, `!algo`, `!algorithme` | `#algorithm[…]` |
-| `!thmt`, `!theorem-title` | Théorème avec titre et étiquette |
-| `!exsol`, `!exercise-solution` | Exercice de cours suivi de sa solution |
-| `!solpause` | Solution avec `#pause` pour la présentation |
-| `!taille-presentation`, `!taille-pres` | `#taille-presentation(0.92em)[…]`, taille modifiée uniquement en présentation |
-| `!question`, `!ques` | Question et solution dans `contenu: (…)` |
-| `!question-bareme`, `!quesb` | Question avec choix des points et étiquette |
-| `!slides-only`, `!slides` | `#slides-only[…]`, contenu réservé aux diapositives |
-| `!article-only`, `!articles-only`, `!article` | `#article-only[…]`, contenu réservé au cours A4 |
-| `!exercice-banque`, `!exbank` | Fichier d’exercice réutilisable exportant `ex` |
+| `!taille-presentation` | `#taille-presentation(0.92em)[…]` |
+| `!question` | Question et solution dans `contenu: (…)` |
+| `!question-bareme` | Question avec points et étiquette |
+| `!slides-only` | Contenu réservé aux diapositives |
+| `!article-only` | Contenu réservé au cours A4 |
+| `!exercice-banque` | Fichier d'exercice réutilisable exportant `ex` |
 
-Ces blocs utilisent les fonctions de la bibliothèque MPI, à importer dans le document comme dans les modèles de `templates/`. Les environnements encadrés viennent de `theoremes` ; `solution`, `slides-only`, `article-only` et `taille-presentation` viennent de `/load.typ`. La fonction est bien `article-only` au singulier ; `!articles-only` est un alias de saisie. Les snippets de questions s’utilisent en mode code, dans le tuple `contenu`, et incluent leur virgule finale. Pour un nouvel exercice, **F4** conserve la création guidée avec les métadonnées du dépôt ; `!exbank` fournit un squelette à adapter manuellement.
+Ces blocs utilisent les fonctions de la bibliothèque MPI, à importer comme dans les modèles de `templates/`. Les environnements encadrés viennent de `theoremes` ; `solution`, `slides-only`, `article-only` et `taille-presentation` viennent de `/load.typ`. Les questions s'utilisent en mode code dans le tuple `contenu` et incluent leur virgule finale. **F4** conserve la création guidée avec les métadonnées du dépôt.
 
 Pour développer directement un préfixe avec Tab, activer facultativement `"editor.tabCompletion": "onlySnippets"` dans les réglages VS Code.
 

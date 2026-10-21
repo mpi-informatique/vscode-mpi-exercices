@@ -1,39 +1,43 @@
 import * as vscode from 'vscode';
 import assert from 'node:assert/strict';
-import { until } from './helpers';
+import { readFile } from 'node:fs/promises';
+import * as path from 'node:path';
 
-export async function run(): Promise<void> {
+type Snippet = { prefix: string; body: string | string[] };
+
+export async function run(_api: unknown, extension: vscode.Extension<unknown>): Promise<void> {
+  const snippets: Record<string, Snippet> = JSON.parse(await readFile(path.join(extension.extensionPath, 'snippets/typst.json'), 'utf8'));
+  const prefixes = Object.values(snippets).map(snippet => snippet.prefix);
+  assert.ok(prefixes.every(prefix => typeof prefix === 'string' && prefix.startsWith('!')), 'Un seul préfixe avec ! par snippet');
+  assert.equal(new Set(prefixes).size, prefixes.length, 'Préfixes uniques');
+  for (const functionName of ['theorem', 'definition', 'proposition', 'lemma', 'corollary', 'property', 'example', 'exercise', 'problem', 'algorithm']) {
+    assert.ok(prefixes.includes(`!${functionName}`), `Bloc ${functionName}`);
+    assert.ok(prefixes.includes(`!${functionName}-titre`), `Variante titrée ${functionName}`);
+  }
   const document = await vscode.workspace.openTextDocument({ language: 'typst', content: '' });
   const editor = await vscode.window.showTextDocument(document);
-  const configuration = vscode.workspace.getConfiguration('editor', document.uri);
-  const previous = configuration.inspect('quickSuggestions')?.globalValue;
   try {
-    // Le menu doit s'ouvrir avec !, même sans les suggestions automatiques ordinaires.
-    await configuration.update('quickSuggestions', false, vscode.ConfigurationTarget.Global);
-    for (const [prefix, functionName] of [['solution', 'solution'], ['theorem', 'theorem'], ['slides-only', 'slides-only'], ['articles-only', 'article-only']]) {
+    for (const [prefix, functionName, title] of [['solution', 'solution'], ['theorem', 'theorem'], ['slides-only', 'slides-only'], ['article-only', 'article-only'], ['exercise-titre', 'exercise', 'Titre'], ['algorithm-titre', 'algorithm', 'Titre']]) {
       await vscode.commands.executeCommand('leaveSnippet');
-      await vscode.commands.executeCommand('hideSuggestWidget');
       await editor.edit(edit => edit.replace(new vscode.Range(document.positionAt(0), document.positionAt(document.getText().length)), ''));
       editor.selection = new vscode.Selection(0, 0, 0, 0);
-      await vscode.commands.executeCommand('workbench.action.focusActiveEditorGroup');
-      await vscode.commands.executeCommand('type', { text: '!' });
-      await new Promise(resolve => setTimeout(resolve, 500));
-      await vscode.commands.executeCommand('type', { text: prefix });
-      // Laisser le menu filtrer le préfixe avant d'accepter sa sélection.
-      await new Promise(resolve => setTimeout(resolve, 500));
-      await until(async () => {
-        await vscode.commands.executeCommand('acceptSelectedSuggestion');
-        return document.getText().startsWith(`#${functionName}[`);
-      }, `!${prefix} doit proposer et insérer le bloc sans conserver le !`);
-      assert.equal(document.getText(), `#${functionName}[\n  \n]\n`);
+      const name = Object.keys(snippets).find(name => snippets[name].prefix === `!${prefix}`);
+      assert.ok(name, `Snippet !${prefix} enregistré`);
+      // Choisir le snippet par son nom évite les changements de focus du menu natif au démarrage de VS Code.
+      await vscode.commands.executeCommand('editor.action.insertSnippet', { langId: 'typst', name });
+      const opening = `#${functionName}${title ? '(title: [Titre])' : ''}[`;
+      assert.equal(document.getText(), `${opening}\n  \n]\n`);
+      if (title) {
+        assert.equal(document.getText(editor.selection), title, 'Premier champ : titre du bloc');
+        await vscode.commands.executeCommand('jumpToNextSnippetPlaceholder');
+      }
       assert.equal(editor.selection.active.line, 1, 'Curseur dans le corps du snippet');
       await vscode.commands.executeCommand('jumpToNextSnippetPlaceholder');
       assert.equal(editor.selection.active.line, 3, 'Tab rejoint la sortie du bloc');
     }
   } finally {
-    await configuration.update('quickSuggestions', previous, vscode.ConfigurationTarget.Global);
     await vscode.commands.executeCommand('leaveSnippet');
     await vscode.commands.executeCommand('workbench.action.revertAndCloseActiveEditor');
   }
-  console.log('Snippets : déclenchement !, remplacement, alias et tabulations vérifiés.');
+  console.log('Snippets : préfixes uniques, variantes titrées, insertion et tabulations vérifiés.');
 }

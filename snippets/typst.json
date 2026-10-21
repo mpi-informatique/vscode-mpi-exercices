@@ -1,9 +1,6 @@
 {
   "MPI — solution": {
-    "prefix": [
-      "!solution",
-      "!sol"
-    ],
+    "prefix": "!solution",
     "body": [
       "#solution[",
       "  ${1:${TM_SELECTED_TEXT}}",
@@ -13,11 +10,7 @@
     "description": "Solution de cours, visible dans le corrigé (bibliothèque MPI)"
   },
   "MPI — theorem": {
-    "prefix": [
-      "!theorem",
-      "!thm",
-      "!theoreme"
-    ],
+    "prefix": "!theorem",
     "body": [
       "#theorem[",
       "  ${1:${TM_SELECTED_TEXT}}",
@@ -26,11 +19,18 @@
     ],
     "description": "Théorème numéroté (bibliothèque MPI)"
   },
-  "MPI — definition": {
-    "prefix": [
-      "!definition",
-      "!def"
+  "MPI — theorem avec titre": {
+    "prefix": "!theorem-titre",
+    "body": [
+      "#theorem(title: [${1:Titre}])[",
+      "  ${2:${TM_SELECTED_TEXT}}",
+      "]",
+      "$0"
     ],
+    "description": "Théorème numéroté (bibliothèque MPI) ; titre au format « Nom 2 : Titre »"
+  },
+  "MPI — definition": {
+    "prefix": "!definition",
     "body": [
       "#definition[",
       "  ${1:${TM_SELECTED_TEXT}}",
@@ -39,11 +39,18 @@
     ],
     "description": "Définition numérotée (bibliothèque MPI)"
   },
-  "MPI — proposition": {
-    "prefix": [
-      "!proposition",
-      "!prop"
+  "MPI — definition avec titre": {
+    "prefix": "!definition-titre",
+    "body": [
+      "#definition(title: [${1:Titre}])[",
+      "  ${2:${TM_SELECTED_TEXT}}",
+      "]",
+      "$0"
     ],
+    "description": "Définition numérotée (bibliothèque MPI) ; titre au format « Nom 2 : Titre »"
+  },
+  "MPI — proposition": {
+    "prefix": "!proposition",
     "body": [
       "#proposition[",
       "  ${1:${TM_SELECTED_TEXT}}",
@@ -52,12 +59,18 @@
     ],
     "description": "Proposition numérotée (bibliothèque MPI)"
   },
-  "MPI — lemma": {
-    "prefix": [
-      "!lemma",
-      "!lem",
-      "!lemme"
+  "MPI — proposition avec titre": {
+    "prefix": "!proposition-titre",
+    "body": [
+      "#proposition(title: [${1:Titre}])[",
+      "  ${2:${TM_SELECTED_TEXT}}",
+      "]",
+      "$0"
     ],
+    "description": "Proposition numérotée (bibliothèque MPI) ; titre au format « Nom 2 : Titre »"
+  },
+  "MPI — lemma": {
+    "prefix": "!lemma",
     "body": [
       "#lemma[",
       "  ${1:${TM_SELECTED_TEXT}}",
@@ -66,12 +79,18 @@
     ],
     "description": "Lemme numéroté (bibliothèque MPI)"
   },
-  "MPI — corollary": {
-    "prefix": [
-      "!corollary",
-      "!cor",
-      "!corollaire"
+  "MPI — lemma avec titre": {
+    "prefix": "!lemma-titre",
+    "body": [
+      "#lemma(title: [${1:Titre}])[",
+      "  ${2:${TM_SELECTED_TEXT}}",
+      "]",
+      "$0"
     ],
+    "description": "Lemme numéroté (bibliothèque MPI) ; titre au format « Nom 2 : Titre »"
+  },
+  "MPI — corollary": {
+    "prefix": "!corollary",
     "body": [
       "#corollary[",
       "  ${1:${TM_SELECTED_TEXT}}",
@@ -80,11 +99,18 @@
     ],
     "description": "Corollaire numéroté (bibliothèque MPI)"
   },
-  "MPI — property": {
-    "prefix": [
-      "!property",
-      "!propriete"
+  "MPI — corollary avec titre": {
+    "prefix": "!corollary-titre",
+    "body": [
+      "#corollary(title: [${1:Titre}])[",
+      "  ${2:${TM_SELECTED_TEXT}}",
+      "]",
+      "$0"
     ],
+    "description": "Corollaire numéroté (bibliothèque MPI) ; titre au format « Nom 2 : Titre »"
+  },
+  "MPI — property": {
+    "prefix": "!property",
     "body": [
       "#property[",
       "  ${1:${TM_SELECTED_TEXT}}",
@@ -93,23 +119,18 @@
     ],
     "description": "Propriété numérotée (bibliothèque MPI)"
   },
-  "MPI — remark": {
-    "prefix": [
-      "!remark",
-      "!rem"
-    ],
+  "MPI — property avec titre": {
+    "prefix": "!property-titre",
     "body": [
-      "#remark[",
-      "  ${1:${TM_SELECTED_TEXT}}",
+      "#property(title: [${1:Titre}])[",
+      "  ${2:${TM_SELECTED_TEXT}}",
       "]",
       "$0"
     ],
-    "description": "Remarque numérotée (bibliothèque MPI)"
+    "description": "Propriété numérotée (bibliothèque MPI) ; titre au format « Nom 2 : Titre »"
   },
   "MPI — example": {
-    "prefix": [
-      "!example"
-    ],
+    "prefix": "!example",
     "body": [
       "#example[",
       "  ${1:${TM_SELECTED_TEXT}}",
@@ -118,12 +139,18 @@
     ],
     "description": "Exemple numéroté (bibliothèque MPI)"
   },
-  "MPI — exercise": {
-    "prefix": [
-      "!exercise",
-      "!ex",
-      "!exercice"
+  "MPI — example avec titre": {
+    "prefix": "!example-titre",
+    "body": [
+      "#example(title: [${1:Titre}])[",
+      "  ${2:${TM_SELECTED_TEXT}}",
+      "]",
+      "$0"
     ],
+    "description": "Exemple numéroté (bibliothèque MPI) ; titre au format « Nom 2 : Titre »"
+  },
+  "MPI — exercise": {
+    "prefix": "!exercise",
     "body": [
       "#exercise[",
       "  ${1:${TM_SELECTED_TEXT}}",
@@ -132,11 +159,18 @@
     ],
     "description": "Exercice encadré dans un cours (bibliothèque MPI)"
   },
-  "MPI — problem": {
-    "prefix": [
-      "!problem",
-      "!probleme"
+  "MPI — exercise avec titre": {
+    "prefix": "!exercise-titre",
+    "body": [
+      "#exercise(title: [${1:Titre}])[",
+      "  ${2:${TM_SELECTED_TEXT}}",
+      "]",
+      "$0"
     ],
+    "description": "Exercice encadré dans un cours (bibliothèque MPI) ; titre au format « Nom 2 : Titre »"
+  },
+  "MPI — problem": {
+    "prefix": "!problem",
     "body": [
       "#problem[",
       "  ${1:${TM_SELECTED_TEXT}}",
@@ -145,12 +179,18 @@
     ],
     "description": "Problème encadré (bibliothèque MPI)"
   },
-  "MPI — algorithm": {
-    "prefix": [
-      "!algorithm",
-      "!algo",
-      "!algorithme"
+  "MPI — problem avec titre": {
+    "prefix": "!problem-titre",
+    "body": [
+      "#problem(title: [${1:Titre}])[",
+      "  ${2:${TM_SELECTED_TEXT}}",
+      "]",
+      "$0"
     ],
+    "description": "Problème encadré (bibliothèque MPI) ; titre au format « Nom 2 : Titre »"
+  },
+  "MPI — algorithm": {
+    "prefix": "!algorithm",
     "body": [
       "#algorithm[",
       "  ${1:${TM_SELECTED_TEXT}}",
@@ -159,24 +199,18 @@
     ],
     "description": "Algorithme encadré (bibliothèque MPI)"
   },
-  "MPI — Théorème avec titre": {
-    "prefix": [
-      "!thmt",
-      "!theorem-title"
-    ],
+  "MPI — algorithm avec titre": {
+    "prefix": "!algorithm-titre",
     "body": [
-      "#theorem(title: [${1:Titre}])[",
+      "#algorithm(title: [${1:Titre}])[",
       "  ${2:${TM_SELECTED_TEXT}}",
-      "] <${3:thm-etiquette}>",
+      "]",
       "$0"
     ],
-    "description": "Théorème avec titre et étiquette pour les renvois @ (bibliothèque MPI)"
+    "description": "Algorithme encadré (bibliothèque MPI) ; titre au format « Nom 2 : Titre »"
   },
   "MPI — Exercice et solution de cours": {
-    "prefix": [
-      "!exsol",
-      "!exercise-solution"
-    ],
+    "prefix": "!exsol",
     "body": [
       "#exercise[",
       "  ${1:Énoncé}",
@@ -189,9 +223,7 @@
     "description": "Exercice encadré suivi de sa solution dans un cours (bibliothèque MPI)"
   },
   "MPI — Solution avec pause": {
-    "prefix": [
-      "!solpause"
-    ],
+    "prefix": "!solpause",
     "body": [
       "#solution[",
       "  #pause",
@@ -202,10 +234,7 @@
     "description": "Solution révélée après une pause en présentation (bibliothèque MPI)"
   },
   "MPI — Question de banque": {
-    "prefix": [
-      "!question",
-      "!ques"
-    ],
+    "prefix": "!question",
     "body": [
       "question(",
       "  [${1:Énoncé}],",
@@ -216,10 +245,7 @@
     "description": "Question dans le tuple contenu: (...) d’un exercice, sans # (bibliothèque MPI)"
   },
   "MPI — Question avec barème": {
-    "prefix": [
-      "!question-bareme",
-      "!quesb"
-    ],
+    "prefix": "!question-bareme",
     "body": [
       "question(",
       "  [${1:Énoncé}],",
@@ -232,10 +258,7 @@
     "description": "Question avec points et étiquette dans contenu: (...) (bibliothèque MPI)"
   },
   "MPI — Exercice réutilisable": {
-    "prefix": [
-      "!exercice-banque",
-      "!exbank"
-    ],
+    "prefix": "!exercice-banque",
     "body": [
       "#import \"/load.typ\": exercice, question",
       "",
@@ -259,10 +282,7 @@
     "description": "Fichier complet exportant ex ; adapter les métadonnées au vocabulaire de la banque MPI"
   },
   "MPI — slides-only": {
-    "prefix": [
-      "!slides-only",
-      "!slides"
-    ],
+    "prefix": "!slides-only",
     "body": [
       "#slides-only[",
       "  ${1:${TM_SELECTED_TEXT}}",
@@ -272,11 +292,7 @@
     "description": "Contenu réservé aux diapositives (Touying, bibliothèque MPI)"
   },
   "MPI — article-only": {
-    "prefix": [
-      "!article-only",
-      "!articles-only",
-      "!article"
-    ],
+    "prefix": "!article-only",
     "body": [
       "#article-only[",
       "  ${1:${TM_SELECTED_TEXT}}",
@@ -285,32 +301,23 @@
     ],
     "description": "Contenu réservé au cours A4 (Touying, bibliothèque MPI)"
   },
-  "MPI — Remarque soulignée": {
-    "prefix": [
-      "!remarque"
-    ],
+  "MPI — Remarque": {
+    "prefix": "!remarque",
     "body": "#underline[Remarque] : $0",
     "description": "Remarque en ligne avec titre souligné"
   },
   "MPI — Exemple": {
-    "prefix": [
-      "!exemple"
-    ],
+    "prefix": "!exemple",
     "body": "#underline[Exemple] : $0",
     "description": "Exemple en ligne avec titre souligné"
   },
   "MPI — Attention": {
-    "prefix": [
-      "!attention"
-    ],
+    "prefix": "!attention",
     "body": "#underline[Attention] : $0",
     "description": "Attention en ligne avec titre souligné"
   },
   "MPI — Taille en présentation": {
-    "prefix": [
-      "!taille-presentation",
-      "!taille-pres"
-    ],
+    "prefix": "!taille-presentation",
     "body": "#taille-presentation(${1:0.92em})[${2:${TM_SELECTED_TEXT}}]$0",
     "description": "Taille du texte modifiée uniquement en présentation ; taille normale dans le cours et le corrigé"
   }
