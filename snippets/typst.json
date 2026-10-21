@@ -12,7 +12,7 @@
   "MPI — Théorème": {
     "prefix": "!theoreme",
     "body": [
-      "#theorem[",
+      "#theoreme[",
       "  ${1:${TM_SELECTED_TEXT}}",
       "]",
       "$0"
@@ -22,7 +22,7 @@
   "MPI — Théorème avec titre": {
     "prefix": "!theoreme-titre",
     "body": [
-      "#theorem(title: [${1:Titre}])[",
+      "#theoreme([${1:Titre}])[",
       "  ${2:${TM_SELECTED_TEXT}}",
       "]",
       "$0"
@@ -42,7 +42,7 @@
   "MPI — Définition avec titre": {
     "prefix": "!definition-titre",
     "body": [
-      "#definition(title: [${1:Titre}])[",
+      "#definition([${1:Titre}])[",
       "  ${2:${TM_SELECTED_TEXT}}",
       "]",
       "$0"
@@ -62,7 +62,7 @@
   "MPI — Proposition avec titre": {
     "prefix": "!proposition-titre",
     "body": [
-      "#proposition(title: [${1:Titre}])[",
+      "#proposition([${1:Titre}])[",
       "  ${2:${TM_SELECTED_TEXT}}",
       "]",
       "$0"
@@ -72,7 +72,7 @@
   "MPI — Lemme": {
     "prefix": "!lemme",
     "body": [
-      "#lemma[",
+      "#lemme[",
       "  ${1:${TM_SELECTED_TEXT}}",
       "]",
       "$0"
@@ -82,7 +82,7 @@
   "MPI — Lemme avec titre": {
     "prefix": "!lemme-titre",
     "body": [
-      "#lemma(title: [${1:Titre}])[",
+      "#lemme([${1:Titre}])[",
       "  ${2:${TM_SELECTED_TEXT}}",
       "]",
       "$0"
@@ -92,7 +92,7 @@
   "MPI — Corollaire": {
     "prefix": "!corollaire",
     "body": [
-      "#corollary[",
+      "#corollaire[",
       "  ${1:${TM_SELECTED_TEXT}}",
       "]",
       "$0"
@@ -102,7 +102,7 @@
   "MPI — Corollaire avec titre": {
     "prefix": "!corollaire-titre",
     "body": [
-      "#corollary(title: [${1:Titre}])[",
+      "#corollaire([${1:Titre}])[",
       "  ${2:${TM_SELECTED_TEXT}}",
       "]",
       "$0"
@@ -112,7 +112,7 @@
   "MPI — Propriété": {
     "prefix": "!propriete",
     "body": [
-      "#property[",
+      "#propriete[",
       "  ${1:${TM_SELECTED_TEXT}}",
       "]",
       "$0"
@@ -122,7 +122,7 @@
   "MPI — Propriété avec titre": {
     "prefix": "!propriete-titre",
     "body": [
-      "#property(title: [${1:Titre}])[",
+      "#propriete([${1:Titre}])[",
       "  ${2:${TM_SELECTED_TEXT}}",
       "]",
       "$0"
@@ -132,7 +132,7 @@
   "MPI — Exemple encadré": {
     "prefix": "!exemple-bloc",
     "body": [
-      "#example[",
+      "#exemple[",
       "  ${1:${TM_SELECTED_TEXT}}",
       "]",
       "$0"
@@ -142,7 +142,7 @@
   "MPI — Exemple encadré avec titre": {
     "prefix": "!exemple-bloc-titre",
     "body": [
-      "#example(title: [${1:Titre}])[",
+      "#exemple([${1:Titre}])[",
       "  ${2:${TM_SELECTED_TEXT}}",
       "]",
       "$0"
@@ -152,7 +152,7 @@
   "MPI — Exercice": {
     "prefix": "!exercice",
     "body": [
-      "#exercise[",
+      "#exercice[",
       "  ${1:${TM_SELECTED_TEXT}}",
       "]",
       "$0"
@@ -162,7 +162,7 @@
   "MPI — Exercice avec titre": {
     "prefix": "!exercice-titre",
     "body": [
-      "#exercise(title: [${1:Titre}])[",
+      "#exercice([${1:Titre}])[",
       "  ${2:${TM_SELECTED_TEXT}}",
       "]",
       "$0"
@@ -172,7 +172,7 @@
   "MPI — Problème": {
     "prefix": "!probleme",
     "body": [
-      "#problem[",
+      "#probleme[",
       "  ${1:${TM_SELECTED_TEXT}}",
       "]",
       "$0"
@@ -182,7 +182,7 @@
   "MPI — Problème avec titre": {
     "prefix": "!probleme-titre",
     "body": [
-      "#problem(title: [${1:Titre}])[",
+      "#probleme([${1:Titre}])[",
       "  ${2:${TM_SELECTED_TEXT}}",
       "]",
       "$0"
@@ -192,7 +192,7 @@
   "MPI — Algorithme": {
     "prefix": "!algorithme",
     "body": [
-      "#algorithm[",
+      "#algorithme[",
       "  ${1:${TM_SELECTED_TEXT}}",
       "]",
       "$0"
@@ -202,7 +202,7 @@
   "MPI — Algorithme avec titre": {
     "prefix": "!algorithme-titre",
     "body": [
-      "#algorithm(title: [${1:Titre}])[",
+      "#algorithme([${1:Titre}])[",
       "  ${2:${TM_SELECTED_TEXT}}",
       "]",
       "$0"
@@ -212,7 +212,7 @@
   "MPI — Exercice et solution de cours": {
     "prefix": "!exsol",
     "body": [
-      "#exercise[",
+      "#exercice[",
       "  ${1:Énoncé}",
       "]",
       "#solution[",
@@ -264,7 +264,7 @@
       "",
       "#let ex = exercice(",
       "  meta: (",
-      "    titre: \"${1:Titre}\",",
+      "    \"${1:Titre}\",",
       "    chapitres: (\"${2:graphes}\",),",
       "    difficulte: ${3|1,2,3,4,5|},",
       "    niveaux: (\"${4:MPI}\",),",

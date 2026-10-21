@@ -53,7 +53,7 @@ Les noms et préfixes des blocs sont en français, sans accents dans les préfix
 | Problème | `!probleme` | `!probleme-titre` |
 | Algorithme | `!algorithme` | `!algorithme-titre` |
 
-Par exemple, `!exercice-titre` insère `#exercise(title: [Titre])[…]`. Le titre affiché prend la forme **Exercice 2 : Monoïdes et taille**, avec numérotation automatique et un titre saisi dans le premier champ. Sans titre, seul **Exercice 2** est affiché. Ce rendu utilise la bibliothèque MPI mise à jour.
+Par exemple, `!exercice-titre` insère `#exercice(titre: [Titre])[…]`. Le titre affiché prend la forme **Exercice 2 : Monoïdes et taille**, avec numérotation automatique et un titre saisi dans le premier champ. Sans titre, seul **Exercice 2** est affiché. Ce rendu utilise la bibliothèque MPI mise à jour.
 
 | Autre préfixe | Contenu inséré |
 | --- | --- |
@@ -70,7 +70,7 @@ Par exemple, `!exercice-titre` insère `#exercise(title: [Titre])[…]`. Le titr
 | `!article-only` | Contenu réservé au cours A4 |
 | `!exercice-banque` | Fichier d'exercice réutilisable exportant `ex` |
 
-Ces blocs utilisent les fonctions de la bibliothèque MPI, à importer comme dans les modèles de `templates/`. Les environnements encadrés viennent de `theoremes` ; `solution`, `slides-only`, `article-only` et `taille-presentation` viennent de `/load.typ`. Les questions s'utilisent en mode code dans le tuple `contenu` et incluent leur virgule finale. **F4** conserve la création guidée avec les métadonnées du dépôt.
+Ces blocs utilisent les fonctions de la bibliothèque MPI, à importer comme dans les modèles de `templates/`. Les environnements encadrés utilisent les fonctions françaises de `theoremes` et le paramètre `titre:` ; `solution`, `slides-only`, `article-only` et `taille-presentation` viennent de `/load.typ`. Les questions s'utilisent en mode code dans le tuple `contenu` et incluent leur virgule finale. **F4** conserve la création guidée avec les métadonnées du dépôt.
 
 Pour développer directement un préfixe avec Tab, activer facultativement `"editor.tabCompletion": "onlySnippets"` dans les réglages VS Code.
 
