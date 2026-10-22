@@ -162,6 +162,8 @@ Une explication réservée au cours.]
 Une indication réservée à la présentation.]
 #solution[== Réponse réservée
 Une solution de l'exercice.]
+#solution(presentation: true)[== Réponse projetée
+Une solution affichée aussi dans la présentation.]
 `);
     const courseEditor = await vscode.window.showTextDocument(courseUri, { viewColumn: vscode.ViewColumn.One });
     const coursePreview = await previews.open(previewBank, courseSource, 'enonce');
@@ -185,7 +187,8 @@ Une solution de l'exercice.]
       await vscode.workspace.applyEdit(edit);
       await until(() => JSON.stringify(renderedOutline)?.includes(marker) ?? false, `${format} : contenu propre au format affiché`);
       assert.ok(!JSON.stringify(renderedOutline).includes(excluded), `${format} : contenu de l'autre format absent`);
-      assert.equal(JSON.stringify(renderedOutline).includes('Réponse réservée'), variant !== 'enonce', 'La solution est masquée dans le cours normal');
+      assert.equal(JSON.stringify(renderedOutline).includes('Réponse réservée'), variant === 'corrige', 'La solution est réservée au cours corrigé par défaut');
+      assert.equal(JSON.stringify(renderedOutline).includes('Réponse projetée'), variant !== 'enonce', 'Une solution peut être explicitement activée dans la présentation');
       if (variant === 'presentation') {
         await until(() => courseProgress.some(progress => progress.total > 1), 'Nombre total de diapositives affiché');
       }
