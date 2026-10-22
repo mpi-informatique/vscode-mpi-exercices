@@ -163,11 +163,15 @@ window.addEventListener('message', ({ data }) => {
 });
 window.addEventListener('message', event => {
   const data = event.data;
-  if (!['pageProgress', 'pageStep', 'selectVariant'].includes(data?.type)) return;
+  if (!['pageProgress', 'pageStep', 'pageBoundary', 'selectVariant'].includes(data?.type)) return;
   for (const [variant, frame] of frames) {
     if (event.source !== frame.contentWindow || event.origin !== new URL(frame.src).origin || data.token !== state.tokens?.[variant]) continue;
     if (data.type === 'selectVariant') {
       if (state.variant === variant && variants.includes(data.variant)) vscode.postMessage({ type: data.variant });
+      return;
+    }
+    if (data.type === 'pageBoundary') {
+      if (state.variant === variant && ['start', 'end'].includes(data.boundary)) goToPage(data.boundary === 'start' ? 1 : currentProgress.total);
       return;
     }
     if (data.type === 'pageStep') {
@@ -188,6 +192,11 @@ window.addEventListener('keydown', event => {
     return;
   }
   if (event.target.closest?.('input, textarea, [contenteditable="true"]')) return;
+  if (['Home', 'End'].includes(event.key)) {
+    event.preventDefault();
+    goToPage(event.key === 'Home' ? 1 : currentProgress.total);
+    return;
+  }
   if (['ArrowLeft', 'ArrowRight'].includes(event.key)) {
     event.preventDefault();
     goToPage(currentProgress.current + (event.key === 'ArrowRight' ? 1 : -1));

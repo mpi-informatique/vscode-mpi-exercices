@@ -2,6 +2,8 @@
 
 ## 0.1.0
 
+- Rejoindre la première ou la dernière page avec Début/Fin, dans le lecteur PDF et l’aperçu Tinymist.
+
 - Insérer les fonctions Typst françaises (`theoreme`, `exercice`, `algorithme`…) avec le paramètre `titre:`.
 
 - Franciser les noms et les préfixes des blocs numérotés et de leurs variantes avec titre.

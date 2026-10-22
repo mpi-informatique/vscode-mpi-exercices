@@ -69,10 +69,14 @@ html:not(.exercices-jumps) .typst-jump-ripple,html:not(.exercices-jumps) .typst-
       parent.postMessage({ type: 'selectVariant', token, variant: event.key === 'F5' ? 'enonce' : event.key === 'F6' ? 'corrige' : 'presentation' }, '*');
       return;
     }
-    if (event.target.closest?.('input, textarea, [contenteditable="true"]') || !['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
+    if (event.target.closest?.('input, textarea, [contenteditable="true"]') || !['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
     event.preventDefault();
     event.stopImmediatePropagation();
-    parent.postMessage({ type: 'pageStep', token, delta: event.key === 'ArrowRight' ? 1 : -1 }, '*');
+    if (['Home', 'End'].includes(event.key)) {
+      parent.postMessage({ type: 'pageBoundary', token, boundary: event.key === 'Home' ? 'start' : 'end' }, '*');
+    } else {
+      parent.postMessage({ type: 'pageStep', token, delta: event.key === 'ArrowRight' ? 1 : -1 }, '*');
+    }
   }, true);
 })();
 </script></head>`);

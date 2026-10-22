@@ -259,10 +259,20 @@ test('navigation Tinymist : choisir une page, ignorer les messages étrangers et
   assert.equal(prevented, true);
   assert.equal(messages.at(-1).type, 'pageStep');
   assert.equal(messages.at(-1).delta, -1);
-  const count = messages.length;
-  listeners.get('keydown')!({ ...key, target: { closest: () => ({}) } });
-  listeners.get('keydown')!({ ...key, ctrlKey: true });
-  assert.equal(messages.length, count, 'Les champs de saisie et les raccourcis modifiés restent utilisables');
+  for (const [keyName, boundary] of [['Home', 'start'], ['End', 'end']]) {
+    prevented = false;
+    listeners.get('keydown')!({ ...key, key: keyName });
+    assert.equal(prevented, true);
+    assert.equal(messages.at(-1).type, 'pageBoundary');
+    assert.equal(messages.at(-1).boundary, boundary);
+    assert.equal(messages.at(-1).token, 'secret');
+  }
+  for (const keyName of ['ArrowLeft', 'Home', 'End']) {
+    const count = messages.length;
+    listeners.get('keydown')!({ ...key, key: keyName, target: { closest: () => ({}) } });
+    for (const modifier of ['ctrlKey', 'altKey', 'metaKey', 'shiftKey', 'defaultPrevented']) listeners.get('keydown')!({ ...key, key: keyName, [modifier]: true });
+    assert.equal(messages.length, count, 'Les champs de saisie et les raccourcis modifiés restent utilisables');
+  }
   for (const [keyName, variant] of [['F5', 'enonce'], ['F6', 'corrige'], ['F7', 'presentation']]) {
     prevented = false;
     listeners.get('keydown')!({ ...key, key: keyName, target: { closest: () => ({}) } });
@@ -275,7 +285,7 @@ test('navigation Tinymist : choisir une page, ignorer les messages étrangers et
     assert.equal(messages.length, count);
   }
 });
-test('lecteur : F5/F6/F7 depuis le PDF, la barre et l’iframe active, avec validation des messages', async () => {
+test('lecteur : raccourcis de variantes et début/fin depuis le PDF, la barre et l’iframe active', async () => {
   const listeners = new Map<string, ((event: any) => void)[]>();
   const messages: any[] = [];
   const elements = new Map<string, any>();
@@ -289,6 +299,7 @@ test('lecteur : F5/F6/F7 depuis le PDF, la barre et l’iframe active, avec vali
   const window = { addEventListener: (type: string, listener: (event: any) => void) => listeners.set(type, [...listeners.get(type) ?? [], listener]) };
   runInNewContext(await readFile(path.join(process.cwd(), 'media/viewer.mjs'), 'utf8'), {
     document, window, URL,
+    requestAnimationFrame: () => 0, cancelAnimationFrame: () => undefined,
     getComputedStyle: () => ({ getPropertyValue: () => '' }),
     acquireVsCodeApi: () => ({ postMessage: (message: unknown) => messages.push(message) }),
     MutationObserver: class { observe() {} },
@@ -330,6 +341,47 @@ test('lecteur : F5/F6/F7 depuis le PDF, la barre et l’iframe active, avec vali
   dispatch('message', event);
   assert.equal(messages.length, count + 1);
   assert.equal(messages.at(-1).type, 'corrige');
+  const navigations: any[] = [];
+  frames[0].contentWindow.postMessage = (message: any) => navigations.push(message);
+  dispatch('message', { ...event, data: { type: 'pageProgress', token: 'secret', current: 3, total: 7 } });
+  const key = { target: { closest: () => null }, preventDefault() {} };
+  for (const [keyName, page] of [['End', 7], ['Home', 1]] as const) {
+    dispatch('keydown', { ...key, key: keyName });
+    assert.equal(navigations.at(-1).type, 'goToPage');
+    assert.equal(navigations.at(-1).page, page);
+    assert.equal(navigations.at(-1).token, 'secret');
+    const count = navigations.length;
+    dispatch('keydown', { ...key, key: keyName, target: { closest: () => ({}) } });
+    for (const modifier of ['ctrlKey', 'altKey', 'metaKey', 'shiftKey', 'defaultPrevented']) dispatch('keydown', { ...key, key: keyName, [modifier]: true });
+    assert.equal(navigations.length, count, 'Début/Fin préservent les saisies et les raccourcis modifiés');
+  }
+  const boundary = { ...event, data: { type: 'pageBoundary', token: 'secret', boundary: 'end' } };
+  dispatch('message', boundary);
+  assert.equal(navigations.at(-1).page, 7);
+  dispatch('message', { ...boundary, data: { ...boundary.data, boundary: 'start' } });
+  assert.equal(navigations.at(-1).page, 1);
+  const navigationCount = navigations.length;
+  dispatch('message', { ...boundary, origin: 'http://foreign.invalid' });
+  dispatch('message', { ...boundary, source: {} });
+  dispatch('message', { ...boundary, data: { ...boundary.data, token: 'incorrect' } });
+  dispatch('message', { ...boundary, data: { ...boundary.data, boundary: 'middle' } });
+  dispatch('message', { ...boundary, source: frames[1].contentWindow, data: { ...boundary.data, token: 'other' } });
+  assert.equal(navigations.length, navigationCount, 'Seule l’iframe active authentifiée peut demander un saut');
+
+  dispatch('message', { data: { channel: 'test', type: 'show', native: false, variant: 'enonce', sessions: {} } });
+  const host = elements.get('viewers');
+  host.scrollTop = 200;
+  host.getBoundingClientRect = () => ({ top: 0 });
+  host.querySelector = (selector: string) => ({ getBoundingClientRect: () => ({ top: (Number(/data-page="(\d+)"/.exec(selector)![1]) - 1) * 100 - host.scrollTop }) });
+  host.scrollTo = ({ top }: { top: number }) => { host.scrollTop = top; };
+  dispatch('keydown', { ...key, key: 'End' });
+  assert.equal(host.scrollTop, 600, 'Fin rejoint la dernière page du PDF de secours');
+  dispatch('keydown', { ...key, key: 'Home' });
+  assert.equal(host.scrollTop, 0, 'Début rejoint la première page du PDF de secours');
+  dispatch('message', { data: { channel: 'test', type: 'reset' } });
+  dispatch('keydown', { ...key, key: 'End' });
+  assert.equal(host.scrollTop, 0, 'Aucun saut avant que la pagination soit disponible');
+
 });
 test('commentaires imbriqués et code brut ne créent pas de faux éléments', () => {
   const text = '/* externe /* interne */ question([faux]) */\n`question([faux])`\nquestion([Vrai])';
