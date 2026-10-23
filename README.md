@@ -6,9 +6,9 @@ Le dépôt contient aussi [TP MPI](tp/README.md), une extension indépendante po
 
 ## Installation
 
-Après sa première publication, installer [Exercices MPI depuis le Marketplace](https://marketplace.visualstudio.com/items?itemName=qfortier.vscode-mpi-exercices) et activer **Auto Update** dans le menu de l'extension. Les nouvelles versions seront récupérées automatiquement.
+Télécharger [Exercices MPI — dernière release stable](https://github.com/mpi-informatique/vscode-mpi-exercices/releases/latest/download/vscode-mpi-exercices.vsix), puis utiliser **Extensions → … → Installer à partir d’un VSIX**. Les [releases GitHub](https://github.com/mpi-informatique/vscode-mpi-exercices/releases) contiennent les deux extensions : `vscode-mpi-exercices.vsix` pour les enseignants et `vscode-mpi-tp.vsix` pour les élèves.
 
-Pour une installation manuelle, utiliser le VSIX des [versions GitHub](https://github.com/mpi-informatique/vscode-mpi-exercices/releases) ou de `releases/` avec **Extensions → … → Installer à partir d'un VSIX**. Une installation en VSIX désactive par défaut la mise à jour automatique : la réactiver après disponibilité sur le Marketplace.
+Pour une mise à jour locale, télécharger à nouveau le VSIX et le réinstaller. Dans le Codespace de `tp-environnement`, TP MPI est actualisée automatiquement à chaque connexion.
 
 Ouvrir ensuite le dépôt public ou privé, ou leur dossier parent : les dépôts enfants immédiats sont détectés automatiquement. Pour les consulter ensemble, ouvrir `exercices-prive/exercices.code-workspace`.
 
@@ -140,4 +140,4 @@ Le code reprend l'extension locale `vscode-exercices-mpi`. La licence reste `UNL
 
 ## Publication
 
-Le workflow [Publication Marketplace](.github/workflows/publish.yml) teste et publie chaque tag stable `vX.Y.Z`. La configuration initiale du compte éditeur, de l'authentification et la préparation des versions sont décrites dans le [guide de publication](docs/publication.md).
+Le workflow [Publication GitHub](.github/workflows/publish.yml) teste et construit les deux extensions pour chaque tag stable `vX.Y.Z`, puis joint leurs VSIX à une release GitHub. Les noms fixes des fichiers permettent aux conteneurs de récupérer la dernière release stable. La préparation des versions est décrite dans le [guide de publication](docs/publication.md).

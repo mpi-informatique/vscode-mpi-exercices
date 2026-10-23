@@ -1,4 +1,4 @@
-name: Publication Marketplace
+name: Publication GitHub
 on:
   push:
     tags: ['v[0-9]*']
@@ -11,7 +11,7 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: marketplace-publication
+  group: github-publication
   cancel-in-progress: false
 jobs:
   publish:
@@ -21,7 +21,6 @@ jobs:
         working-directory: vscode-mpi-exercices
     permissions:
       contents: write
-      id-token: write
     env:
       RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
     steps:
@@ -44,25 +43,26 @@ jobs:
           git merge-base --is-ancestor HEAD origin/main
           nix develop . -c node scripts/check-release.mjs "$RELEASE_TAG"
       - run: nix develop . -c npm ci
+      - run: nix develop . -c npm --prefix tp ci
       - run: nix develop . -c npm test
+      - run: nix develop . -c npm --prefix tp test
+      - run: xvfb-run -a nix develop . -c npm --prefix tp run test:integration
       - run: nix develop . -c npm run package
-      - name: Publier le VSIX sur le Marketplace
-        env:
-          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+      - run: nix develop . -c npm --prefix tp run package
+      - name: Préparer les deux VSIX avec des noms fixes
         run: |
-          package="releases/vscode-mpi-exercices-${RELEASE_TAG#v}.vsix"
-          if [ -n "$VSCE_PAT" ]; then
-            nix develop . -c npm run publish:marketplace -- --packagePath "$package"
-          else
-            nix develop . -c npm run publish:marketplace -- --packagePath "$package" --oidc
-          fi
-      - name: Joindre le VSIX à la version GitHub
+          tp_version=$(nix develop . -c node -p 'require("./tp/package.json").version')
+          cp "releases/vscode-mpi-exercices-${RELEASE_TAG#v}.vsix" releases/vscode-mpi-exercices.vsix
+          cp "tp/releases/vscode-mpi-tp-$tp_version.vsix" releases/vscode-mpi-tp.vsix
+      - name: Publier les deux VSIX dans une release GitHub
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          package="releases/vscode-mpi-exercices-${RELEASE_TAG#v}.vsix"
-          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
-            gh release upload "$RELEASE_TAG" "$package" --clobber
+          if draft=$(gh release view "$RELEASE_TAG" --json isDraft --jq .isDraft 2>/dev/null); then
+            gh release upload "$RELEASE_TAG" releases/vscode-mpi-exercices.vsix releases/vscode-mpi-tp.vsix --clobber
+            if [ "$draft" = true ]; then
+              gh release edit "$RELEASE_TAG" --draft=false
+            fi
           else
-            gh release create "$RELEASE_TAG" "$package" --verify-tag --title "$RELEASE_TAG" --generate-notes
+            gh release create "$RELEASE_TAG" releases/vscode-mpi-exercices.vsix releases/vscode-mpi-tp.vsix --verify-tag --title "$RELEASE_TAG" --generate-notes
           fi

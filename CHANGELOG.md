@@ -2,6 +2,8 @@
 
 ## 0.1.0
 
+- Distribuer les deux VSIX dans les releases GitHub avec des liens stables ; le conteneur installe automatiquement la dernière version de TP MPI et conserve une copie en cache.
+
 - Regrouper les deux extensions dans ce dépôt : Exercices MPI à la racine et TP MPI dans `tp/`, avec des VSIX et des vérifications indépendants.
 
 - Rejoindre la première ou la dernière page avec Début/Fin, dans le lecteur PDF et l’aperçu Tinymist.

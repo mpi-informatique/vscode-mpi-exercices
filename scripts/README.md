@@ -17,6 +17,6 @@
 
 La logique de compilation pédagogique reste dans les dépôts de contenu : l'extension appelle leur `scripts/build.py`, sans recopier leurs règles.
 
-`check-release.mjs vX.Y.Z` vérifie la concordance entre le tag et les versions des deux manifestes avant publication sur le Marketplace. Le workflow de publication appelle ensuite les mêmes tests et commandes de construction que le développement local.
+`check-release.mjs vX.Y.Z` vérifie le tag d’Exercices MPI et la cohérence des manifestes et verrous des deux extensions. TP MPI conserve sa propre version stable. Le workflow de publication construit les deux VSIX, leur donne des noms fixes et les joint à une release GitHub.
 
-L’extension élève [TP MPI](../tp/README.md) est indépendante dans `tp/`, avec ses propres modules `src/`, scripts, dépendances et tests. Le package partagé reste dans le dépôt voisin `exercices/shared`. Le workflow `tp.yml` vérifie TP MPI et produit son VSIX ; `check.yml` et `publish.yml` concernent Exercices MPI.
+L’extension élève [TP MPI](../tp/README.md) est indépendante dans `tp/`, avec ses propres modules `src/`, scripts, dépendances et tests. Le package partagé reste dans le dépôt voisin `exercices/shared`. Le workflow `tp.yml` vérifie TP MPI et produit son VSIX ; `check.yml` vérifie Exercices MPI et `publish.yml` publie les deux extensions ensemble.

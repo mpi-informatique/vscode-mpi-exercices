@@ -1,42 +1,64 @@
 # Publication et mises à jour
 
-L'identifiant Marketplace est `qfortier.vscode-mpi-exercices`. Le conserver entre les versions pour permettre les mises à jour automatiques. Le workflow [publish.yml](../.github/workflows/publish.yml) teste et publie les tags stables `vX.Y.Z`, puis joint le VSIX à une version GitHub.
+Le workflow [publish.yml](../.github/workflows/publish.yml), nommé **Publication GitHub**, teste et construit les deux extensions pour chaque tag stable `vX.Y.Z`, puis crée une release GitHub avec deux fichiers :
 
-## Configuration initiale du Marketplace
+| Fichier | Extension |
+| --- | --- |
+| `vscode-mpi-exercices.vsix` | Exercices MPI, pour les enseignants |
+| `vscode-mpi-tp.vsix` | TP MPI, pour les élèves |
 
-Se connecter à la [gestion des éditeurs](https://marketplace.visualstudio.com/manage/publishers/) avec le compte Microsoft propriétaire et créer l'éditeur `qfortier` s'il n'existe pas. S'il appartient déjà à quelqu'un d'autre, choisir un identifiant disponible et modifier `publisher` avant la première publication.
+Les fichiers ont des noms fixes dans chaque release. Les liens suivants récupèrent ceux de la dernière release stable :
 
-Deux méthodes d'authentification sont prises en charge :
+- [Exercices MPI](https://github.com/mpi-informatique/vscode-mpi-exercices/releases/latest/download/vscode-mpi-exercices.vsix)
+- [TP MPI](https://github.com/mpi-informatique/vscode-mpi-exercices/releases/latest/download/vscode-mpi-tp.vsix)
 
-- Publication de confiance : configurer sur le Marketplace une politique autorisant l'organisation GitHub `mpi-informatique`, le dépôt `vscode-mpi-exercices` et le workflow `.github/workflows/publish.yml`. Le workflow utilise alors `vsce publish --oidc`, sans jeton durable. Voir le [guide de vsce](https://github.com/microsoft/vscode-vsce#trusted-publishing).
-- Jeton Marketplace : créer un jeton Azure DevOps disposant de **Marketplace → Manage**, avec le compte ayant accès à l'éditeur, puis l'enregistrer dans le [secret GitHub `VSCE_PAT`](https://github.com/mpi-informatique/vscode-mpi-exercices/settings/secrets/actions). Ne pas mettre le jeton dans le dépôt ou une conversation. Le workflow utilise ce secret lorsqu'il existe. Voir la [documentation Microsoft](https://code.visualstudio.com/api/working-with-extensions/publishing-extension#get-a-personal-access-token).
+Les identifiants restent `qfortier.vscode-mpi-exercices` et `qfortier.vscode-mpi-tp`, pour mettre à jour les installations existantes. La publication utilise le `GITHUB_TOKEN` fourni au workflow, avec le droit `contents: write`.
 
-La publication ne peut réussir qu'après cette association au compte éditeur. Un accès GitHub seul ne donne aucun droit sur le Marketplace.
+## Préparer une release
 
-## Première publication
+Le tag correspond à la version de l’extension Exercices MPI à la racine du dépôt. TP MPI conserve sa propre version. Les versions des deux extensions doivent être stables et cohérentes avec leurs `package-lock.json`. Chaque release contient les deux VSIX, même lorsqu’une seule extension change.
 
-Depuis la racine du dépôt, après configuration de l'authentification et commit des changements :
+Exécuter les tests et les suites d’intégration concernées, puis actualiser `CHANGELOG.md`. Si TP MPI a changé, incrémenter sa version et inclure les deux manifestes dans le commit des changements :
 
 ```sh
-git tag v0.1.0
-git push origin v0.1.0
+nix develop . -c npm --prefix tp version patch --no-git-tag-version
+git add tp/package.json tp/package-lock.json CHANGELOG.md
+git commit -m "Préparer la nouvelle version de TP MPI"
 ```
 
-Suivre le workflow [Publication Marketplace](https://github.com/mpi-informatique/vscode-mpi-exercices/actions/workflows/publish.yml). Pour relancer une publication après correction de l'authentification, utiliser **Run workflow** avec le tag existant. Ne pas déplacer un tag déjà publié.
-
-Le workflow contrôle la concordance du tag, de `package.json` et de `package-lock.json`, ainsi que l'appartenance du commit à `main`. Il exécute les tests unitaires et construit le VSIX avant de publier. Les suites d'intégration VS Code restent à lancer localement avant de créer le tag.
-
-## Versions suivantes
-
-Après les modifications et les vérifications, depuis un dépôt propre sur `main` :
+Depuis un dépôt propre sur `main`, préparer la version commune de diffusion :
 
 ```sh
 nix develop . -c npm version patch
 git push origin main --follow-tags
 ```
 
-`npm version patch` actualise les deux manifestes, crée le commit de version et un tag annoté. Utiliser `minor` ou `major` si nécessaire. Actualiser aussi `CHANGELOG.md` avant de préparer la version.
+`npm version patch` actualise `package.json` et `package-lock.json` à la racine, crée le commit de version et un tag annoté. Utiliser `minor` ou `major` si nécessaire.
 
-## Côté utilisateur
+Pour une première release avec les versions actuelles, après commit des changements :
 
-Après disponibilité sur le Marketplace, installer [Exercices MPI](https://marketplace.visualstudio.com/items?itemName=qfortier.vscode-mpi-exercices), puis activer **Auto Update** dans le menu de l'extension. Pour une installation initiale en VSIX, cette option est désactivée par défaut. Les nouvelles versions sont ensuite récupérées par VS Code, sans réinstallation manuelle. Un redémarrage des extensions ou de la fenêtre peut être proposé.
+```sh
+git tag -a v0.1.0 -m "Version 0.1.0"
+git push origin main v0.1.0
+```
+
+Utiliser cette commande uniquement si le tag n’existe pas encore. Ne pas déplacer un tag déjà publié.
+
+## Exécution du workflow
+
+Suivre [Publication GitHub](https://github.com/mpi-informatique/vscode-mpi-exercices/actions/workflows/publish.yml). Le workflow contrôle la concordance du tag avec la version racine, les verrous des deux extensions et l’appartenance du commit à `main`. Il exécute les tests unitaires des deux extensions et l’intégration de TP MPI, puis construit et joint les deux VSIX à la release. Les nouvelles releases sont publiées une fois les deux fichiers téléversés.
+
+Pour reprendre une publication interrompue, utiliser **Run workflow** avec le tag existant. Si la release existe déjà et que ses fichiers restent modifiables, les deux fichiers sont remplacés. Avec les releases immuables, publier un nouveau tag pour corriger une release déjà publiée. Les brouillons et préversions ne sont pas utilisés par les liens `latest`.
+
+## Installation et mises à jour
+
+En local, télécharger le VSIX voulu et utiliser **Extensions → … → Installer à partir d’un VSIX**, ou :
+
+```sh
+code --install-extension vscode-mpi-exercices.vsix --force
+code --install-extension vscode-mpi-tp.vsix --force
+```
+
+Installer uniquement l’extension souhaitée. Pour une mise à jour locale, télécharger et réinstaller son nouveau VSIX.
+
+Le script `.devcontainer/install-extension.sh` de `tp-environnement` vérifie la dernière release stable à chaque connexion. Il utilise une requête conditionnelle avec l’ETag pour éviter de télécharger un fichier inchangé et conserve un VSIX validé dans le cache utilisateur. En cas d’échec du téléchargement ou de l’installation de la nouvelle version, il réinstalle la copie en cache. Une première installation nécessite une release publiée contenant `vscode-mpi-tp.vsix` et un accès réseau à GitHub. Recharger la fenêtre VS Code après une mise à jour si nécessaire.

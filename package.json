@@ -681,8 +681,7 @@
     "test": "npm run check && npm run build && node --test dist/core.test.js test/release.test.mjs",
     "test:integration": "npm run build && node scripts/integration.mjs",
     "vscode:prepublish": "npm run check && npm run build",
-    "package": "vsce package --no-dependencies --skip-license --out releases/",
-    "publish:marketplace": "vsce publish --no-dependencies --skip-license --skip-duplicate"
+    "package": "vsce package --no-dependencies --skip-license --out releases/"
   },
   "dependencies": {
     "pdfjs-dist": "6.3.289",
