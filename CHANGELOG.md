@@ -2,6 +2,8 @@
 
 ## 0.1.0
 
+- Regrouper les deux extensions dans ce dépôt : Exercices MPI à la racine et TP MPI dans `tp/`, avec des VSIX et des vérifications indépendants.
+
 - Rejoindre la première ou la dernière page avec Début/Fin, dans le lecteur PDF et l’aperçu Tinymist.
 
 - Insérer les fonctions Typst françaises (`theoreme`, `exercice`, `algorithme`…) avec le paramètre `titre:`.

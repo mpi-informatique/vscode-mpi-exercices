@@ -1,0 +1,64 @@
+{
+  "name": "vscode-mpi-tp",
+  "displayName": "TP MPI",
+  "description": "Rechercher, télécharger et reprendre les TP MPI avec leur énoncé PDF.",
+  "version": "0.1.0",
+  "publisher": "qfortier",
+  "engines": {"vscode": "^1.100.0"},
+  "categories": ["Education"],
+  "main": "./dist/extension.js",
+  "extensionKind": ["workspace"],
+  "activationEvents": ["onStartupFinished"],
+  "capabilities": {"untrustedWorkspaces": {"supported": false}},
+  "repository": {"type": "git", "url": "https://github.com/mpi-informatique/vscode-mpi-exercices.git", "directory": "tp"},
+  "contributes": {
+    "viewsContainers": {"activitybar": [{"id": "mpiTp", "title": "TP MPI", "icon": "media/tp.svg"}]},
+    "views": {"mpiTp": [
+      {"id": "mpiTp.started", "name": "TP commencés"},
+      {"id": "mpiTp.course", "name": "TP du cours"},
+      {"id": "mpiTp.all", "name": "Tous les TP"}
+    ]},
+    "commands": [
+      {"command": "mpiTp.open", "title": "MPI : ouvrir un TP"},
+      {"command": "mpiTp.refresh", "title": "Actualiser les TP", "icon": "$(refresh)"},
+      {"command": "mpiTp.search", "title": "Rechercher un TP", "icon": "$(search)"},
+      {"command": "mpiTp.resetSearch", "title": "Effacer la recherche des TP", "icon": "$(clear-all)"},
+      {"command": "mpiTp.correction", "title": "MPI : ouvrir le code corrigé du TP"}
+    ],
+    "menus": {"view/title": [
+      {"command": "mpiTp.search", "when": "view == mpiTp.all", "group": "navigation@1"},
+      {"command": "mpiTp.resetSearch", "when": "view == mpiTp.all && mpiTp.searchActive", "group": "navigation@2"},
+      {"command": "mpiTp.refresh", "when": "view =~ /^mpiTp\\./", "group": "navigation@3"}
+    ]},
+    "keybindings": [{"command": "mpiTp.search", "key": "f2", "when": "focusedView =~ /^mpiTp\\./ && !inputFocus"}],
+    "configuration": {
+      "title": "TP MPI",
+      "properties": {
+        "mpiTp.siteUrl": {"type": "string", "default": "https://mpi-informatique.github.io/exercices/", "description": "Site publiant banque/catalogue.json et les ressources des TP."},
+        "mpiTp.courseMenuUrl": {"type": "string", "default": "https://raw.githubusercontent.com/mpi-informatique/cours/main/pages-typst.md", "description": "Source du menu du cours : la rubrique TP détermine les TP du cours et leurs corrigés."},
+        "mpiTp.directory": {"type": "string", "default": "tp", "description": "Dossier des travaux, relatif au premier dossier de travail ou chemin absolu."}
+      }
+    }
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "check": "tsc --noEmit",
+    "test": "npm run check && npm run build && node --test dist/core.test.js",
+    "test:integration": "npm run build && node scripts/integration.mjs",
+    "vscode:prepublish": "npm run check && npm run build",
+    "package": "vsce package --no-dependencies --skip-license --out releases/"
+  },
+  "dependencies": {
+    "@mpi-informatique/exercices-core": "file:../../exercices/shared",
+    "fflate": "0.8.2",
+    "pdfjs-dist": "6.3.289"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.4",
+    "@types/vscode": "1.100.0",
+    "@vscode/test-electron": "3.1.0",
+    "@vscode/vsce": "4.0.0",
+    "esbuild": "0.28.2",
+    "typescript": "5.9.3"
+  }
+}

@@ -1,0 +1,10 @@
+node_modules/**
+src/**
+test/**
+scripts/**
+releases/**
+.vscode-test/**
+tsconfig.json
+package-lock.json
+dist/*.test.js
+dist/integration.js

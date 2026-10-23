@@ -1,5 +1,6 @@
 .vscode/**
 .vscode-test/**
+.direnv/**
 .gitignore
 node_modules/**
 src/**
@@ -17,3 +18,4 @@ package-lock.json
 dist/*.test.js
 dist/integration.js
 dist/probe.js
+tp/**

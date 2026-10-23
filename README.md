@@ -2,6 +2,8 @@
 
 Extension VS Code pour [exercices](https://github.com/mpi-informatique/exercices) et `exercices-prive` : rechercher des exercices, composer des documents, afficher les énoncés et les corrigés, exporter leurs PDF.
 
+Le dépôt contient aussi [TP MPI](tp/README.md), une extension indépendante pour les élèves, dans `tp/`. Les commandes ci-dessous concernent Exercices MPI ; TP MPI possède ses propres dépendances, tests et VSIX. Les deux extensions partagent les composants de `../exercices/shared`.
+
 ## Installation
 
 Après sa première publication, installer [Exercices MPI depuis le Marketplace](https://marketplace.visualstudio.com/items?itemName=qfortier.vscode-mpi-exercices) et activer **Auto Update** dans le menu de l'extension. Les nouvelles versions seront récupérées automatiquement.

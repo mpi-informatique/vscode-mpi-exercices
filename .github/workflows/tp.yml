@@ -1,0 +1,36 @@
+name: Vérifications TP MPI
+on:
+  push:
+    branches: [main]
+    paths: ['tp/**', '.github/workflows/tp.yml', 'flake.nix', 'flake.lock']
+  pull_request:
+    paths: ['tp/**', '.github/workflows/tp.yml', 'flake.nix', 'flake.lock']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  tp:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: vscode-mpi-exercices
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          path: vscode-mpi-exercices
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          repository: mpi-informatique/exercices
+          ref: d80dd95c7adc63a6f2ec222e413698c8eeb848f1
+          path: exercices
+          sparse-checkout: shared
+          persist-credentials: false
+      - uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24 # v31.11.1
+      - run: nix develop . -c npm --prefix tp ci
+      - run: nix develop . -c npm --prefix tp test
+      - run: xvfb-run -a nix develop . -c npm --prefix tp run test:integration
+      - run: nix develop . -c npm --prefix tp run package
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vscode-mpi-tp
+          path: vscode-mpi-exercices/tp/releases/*.vsix
