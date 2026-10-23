@@ -297,7 +297,7 @@ test('lecteur : raccourcis de variantes et début/fin depuis le PDF, la barre et
     querySelectorAll: () => ['enonce', 'corrige', 'presentation'].map(id => ({ id }))
   };
   const window = { addEventListener: (type: string, listener: (event: any) => void) => listeners.set(type, [...listeners.get(type) ?? [], listener]) };
-  runInNewContext(await readFile(path.join(process.cwd(), 'media/viewer.mjs'), 'utf8'), {
+  runInNewContext(await readFile(path.join(process.cwd(), 'dist/viewer/viewer.mjs'), 'utf8'), {
     document, window, URL,
     requestAnimationFrame: () => 0, cancelAnimationFrame: () => undefined,
     getComputedStyle: () => ({ getPropertyValue: () => '' }),

@@ -10,6 +10,7 @@ import { copyDirectory } from './copy-inputs';
 import { identify } from './documents';
 import { Preparation } from './preparation';
 import { associatedCodes, openAssociatedCode } from './code-files';
+import { pdfViewerHtml } from '@mpi-informatique/exercices-core/pdf-viewer';
 import { scrollbarStyle } from './scrollbars';
 
 export interface Preview {
@@ -114,7 +115,7 @@ export class Previews implements vscode.Disposable {
     const variants = availableVariants(documentType);
     if (!variants.includes(variant)) variant = variants[0];
     const panel = vscode.window.createWebviewPanel('mpiExercices.pdf', pdfFilename(source, variant, documentType), { viewColumn: vscode.ViewColumn.Beside, preserveFocus: true }, {
-      enableScripts: true, retainContextWhenHidden: true, localResourceRoots: [vscode.Uri.joinPath(this.context.extensionUri, 'media'), vscode.Uri.joinPath(this.context.extensionUri, 'dist', 'pdfjs')]
+      enableScripts: true, retainContextWhenHidden: true, localResourceRoots: [vscode.Uri.joinPath(this.context.extensionUri, 'dist', 'viewer'), vscode.Uri.joinPath(this.context.extensionUri, 'dist', 'pdfjs')]
     });
     panel.iconPath = vscode.Uri.joinPath(this.context.extensionUri, 'media', 'pdf.svg');
     const sessions = new Map<Variant, tinymist.Session>();
@@ -198,27 +199,12 @@ export class Previews implements vscode.Disposable {
       sessions.clear();
     });
     const webview = panel.webview;
-    const uri = (file: string) => escape(webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'media', file)).toString());
+    const uri = (file: string) => escape(webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'dist', 'viewer', file)).toString());
     const nonce = randomBytes(18).toString('base64');
     // Frame URLs originate only from the extension, never from source contents.
-    webview.html = `<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-      <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}' ${webview.cspSource} 'wasm-unsafe-eval'; style-src ${webview.cspSource} 'unsafe-inline'; font-src ${webview.cspSource} data: blob:; worker-src ${webview.cspSource} blob:; connect-src ${webview.cspSource}; img-src data: blob: ${webview.cspSource}; frame-src http://127.0.0.1:* https:;">
-      <link rel="stylesheet" href="${uri('viewer.css')}"><style>${scrollbarStyle}</style></head><body data-channel="${channel}" data-pdfjs="${escape(webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'dist', 'pdfjs')).toString())}/">
-      <nav aria-label="Outils de l'aperçu">${variants.map(value => `<button id="${value}" data-variant aria-pressed="${value === variant}">${escape(labels[value])}</button>`).join('')}
-      <span class="spacer" aria-hidden="true"></span>
-      <button id="code" title="Ouvrir les codes associés" aria-label="Ouvrir les codes associés" hidden><svg viewBox="0 0 24 24"><path d="m8 7-5 5 5 5m8-10 5 5-5 5m-3-13-2 16"/></svg></button>
-      <div id="page-progress" role="group" aria-label="Pagination">
-      <button id="previous-page" title="Page précédente (←)" aria-label="Page précédente" disabled>‹</button>
-      <input id="page-number" type="number" min="1" step="1" aria-label="Page actuelle" title="Choisir une page et valider avec Entrée" disabled>
-      <span aria-hidden="true">/</span><span id="page-total" aria-label="Nombre total de pages">—</span>
-      <button id="next-page" title="Page suivante (→)" aria-label="Page suivante" disabled>›</button></div>
-      <button id="jumps" title="Sauts source ↔ aperçu" aria-label="Sauts source ↔ aperçu" aria-pressed="true"><svg viewBox="0 0 24 24"><path d="M4 8h16m-4-4 4 4-4 4M20 16H4m4-4-4 4 4 4"/></svg></button>
-      <button id="theme" title="Mode sombre" aria-label="Mode sombre" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M20 14A8 8 0 0 1 10 4a8 8 0 1 0 10 10Z"/></svg></button>
-      <button id="fullscreen" title="Agrandir l'aperçu" aria-label="Agrandir l'aperçu"><svg viewBox="0 0 24 24"><path d="M8 3H3v5m13-5h5v5M8 21H3v-5m18 0v5h-5"/></svg></button>
-      <button id="restart" title="Redémarrer l'aperçu" aria-label="Redémarrer l'aperçu"><svg viewBox="0 0 24 24"><path d="M20 8a9 9 0 1 0 1 8M20 2v6h-6"/></svg></button>
-      <button id="save" title="Exporter le PDF…" aria-label="Exporter le PDF"><svg width="16" height="16" viewBox="0 0 21 21" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3h12l3 3v12H3zM6 3v6h8V3M6 18v-6h9v6"/></svg></button></nav>
-      <p id="compile-error" role="alert" hidden></p><p id="status" role="status">Chargement…</p><main id="viewers"></main>
-      <script nonce="${nonce}" src="${uri('viewer.mjs')}" type="module"></script></body></html>`;
+    webview.html = pdfViewerHtml({ nonce, channel, cspSource: webview.cspSource,
+      pdfjs: webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'dist', 'pdfjs')).toString(),
+      uri, variants, labels, variant, scrollbarStyle });
     try {
       await preview.select(variant);
       void this.prepare(bank, source).catch(error => { if (!this.disposed) this.fallback.output.appendLine(String(error)); });
