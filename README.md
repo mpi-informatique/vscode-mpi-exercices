@@ -16,7 +16,7 @@ L'identifiant est `qfortier.vscode-mpi-exercices`, les réglages utilisent `mpiE
 
 Prérequis : VS Code ≥ 1.100 et Nix avec `nix-command` et `flakes`. Tinymist est recommandé pour l'aperçu à la frappe. Sans Nix, choisir le mode `direct` et fournir Python ≥ 3.11, Typst, les dépendances Typst et, pour le privé, `EXERCICES_SOURCE`.
 
-Le dépôt privé peut relier son package directement au clone public local. Dans ce mode, les modifications enregistrées de la banque publique rafraîchissent automatiquement le moteur Tinymist et les aperçus MPI, dont les caches ne suivent pas toujours les liens symboliques. Aucune copie de la bibliothèque n'est installée. Ouvrir les deux banques, ou leur dossier parent, pour surveiller le clone public.
+Le dépôt privé peut relier son package directement au clone public local. Dans ce mode, les modifications enregistrées de la bibliothèque publique (`load.typ` et `lib/`, hors `lib/tests/`) rafraîchissent automatiquement le moteur Tinymist et les aperçus MPI, dont les caches ne suivent pas toujours les liens symboliques. Les exercices, cours et feuilles se mettent à jour en direct sans redémarrer Tinymist, y compris lors de l'enregistrement automatique. Aucune copie de la bibliothèque n'est installée. Ouvrir les deux banques, ou leur dossier parent, pour surveiller le clone public.
 
 ## Utilisation
 

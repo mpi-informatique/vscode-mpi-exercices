@@ -1,3 +1,9 @@
+// Only the shared library needs the linked-package cache workaround.
+// Exercises and documents already update through Tinymist's live sessions.
+export function isLibrarySource(parts: string[]): boolean {
+  return parts[0] === 'lib' && parts[1] !== 'tests' || parts.length === 1 && parts[0] === 'load.typ';
+}
+
 // Coalesce saved changes; a change during a build requests one subsequent build.
 export class Refresh {
   private dirty = false;

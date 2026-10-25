@@ -14,7 +14,7 @@ import { Sheets, SheetMember } from './sheets';
 import { sourceMetadata } from './sheet-model';
 import { newFolder, moveSource, deleteSource, Location } from './files';
 import { Drag } from './drag';
-import { Refresh } from './refresh';
+import { Refresh, isLibrarySource } from './refresh';
 import { RecentSources, searchPicker } from './search';
 import { errorStatus } from './errors';
 import { mask } from './typst';
@@ -143,7 +143,7 @@ export async function activate(context: vscode.ExtensionContext) {
           const parts = path.relative(root, uri.fsPath).split(path.sep);
           if (parts.some(part => ['.git', '.direnv', '.typst', 'build', 'tmp', '__pycache__', 'node_modules'].includes(part))) return;
           refresh.mark();
-          if (existsSync(path.join(root, 'lib/meta.typ'))) libraryChanges.mark();
+          if (isLibrarySource(parts) && existsSync(path.join(root, 'lib/meta.typ'))) libraryChanges.mark();
         };
         sources.onDidChange(mark);
         sources.onDidCreate(mark);

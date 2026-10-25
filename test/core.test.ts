@@ -8,7 +8,7 @@ import { hierarchy, isFolder } from '../src/tree';
 import { sheetList, editSheet, sourceMetadata } from '../src/sheet-model';
 import { bridgeHtml } from '../src/preview-bridge';
 import { creationPath, contestFromTemplate } from '../src/typst';
-import { Refresh } from '../src/refresh';
+import { Refresh, isLibrarySource } from '../src/refresh';
 import { EnvironmentCache } from '../src/environment-cache';
 import { Preparation } from '../src/preparation';
 import { bankCandidates } from '../src/discovery';
@@ -17,6 +17,11 @@ import { mkdtemp, mkdir, rm, writeFile, readFile } from 'node:fs/promises';
 import * as path from 'node:path';
 import { tmpdir } from 'node:os';
 import { runInNewContext } from 'node:vm';
+
+test('bibliothèque : réserver le redémarrage Tinymist aux sources du package partagé', () => {
+  for (const source of ['load.typ', 'lib/meta.typ', 'lib/themes/madrid.typ']) assert.equal(isLibrarySource(source.split('/')), true, source);
+  for (const source of ['chapitres/graphes/cours.typ', 'chapitres/graphes/exercices/parcours.typ', 'devoirs/ds1.typ', 'templates/cours.typ', 'lib/tests/blocs.typ', 'chapitres/lib/exercice.typ']) assert.equal(isLibrarySource(source.split('/')), false, source);
+});
 
 test('environnement : réutiliser Nix, invalider les sources et réglages, réessayer après une erreur', async () => {
   const cache = new EnvironmentCache<object>();
