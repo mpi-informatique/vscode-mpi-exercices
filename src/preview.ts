@@ -73,6 +73,11 @@ export class Previews implements vscode.Disposable {
 
   clearPreparation(): void { this.preparationEpoch++; this.prepared.clear(); }
 
+  async refreshLibrary(): Promise<void> {
+    this.clearPreparation();
+    await Promise.all([...this.entries.values()].map(preview => preview.restart()));
+  }
+
   async prepare(bank: Bank, source: string): Promise<void> {
     if (this.disposed || !this.hasTinymist() || !vscode.workspace.isTrusted) return;
     const current = this.entries.get(`${bank.root}/${source}`);

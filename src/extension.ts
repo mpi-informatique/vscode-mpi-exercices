@@ -139,7 +139,12 @@ export async function activate(context: vscode.ExtensionContext) {
         }, report);
         // Imports can affect computed metadata: conservatively track all Typst sources.
         const sources = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(vscode.Uri.file(root), '**/*.typ'));
-        const mark = (uri: vscode.Uri) => { if (!path.relative(root, uri.fsPath).split(path.sep).includes('build')) refresh.mark(); };
+        const mark = (uri: vscode.Uri) => {
+          const parts = path.relative(root, uri.fsPath).split(path.sep);
+          if (parts.some(part => ['.git', '.direnv', '.typst', 'build', 'tmp', '__pycache__', 'node_modules'].includes(part))) return;
+          refresh.mark();
+          if (existsSync(path.join(root, 'lib/meta.typ'))) libraryChanges.mark();
+        };
         sources.onDidChange(mark);
         sources.onDidCreate(mark);
         sources.onDidDelete(mark);
@@ -201,6 +206,13 @@ export async function activate(context: vscode.ExtensionContext) {
     if (from.toString() !== destination.toString()) await vscode.workspace.fs.copy(from, destination, { overwrite: true });
   }
   const previews = new Previews(context, exportPdf);
+  // Les caches de Tinymist ne suivent pas toujours les fichiers d'un package lié.
+  const libraryChanges = new Refresh(async () => {
+    await previews.refreshLibrary();
+    if (vscode.extensions.getExtension('myriad-dreamin.tinymist')?.isActive)
+      await vscode.commands.executeCommand('tinymist.restartServer');
+  }, report, 500);
+  context.subscriptions.push(libraryChanges);
   let preparationTimer: NodeJS.Timeout | undefined;
   let preparationSource: string | undefined;
   function schedulePreparation(editor = vscode.window.activeTextEditor): void {
