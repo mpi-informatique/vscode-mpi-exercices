@@ -30,6 +30,8 @@ Les exercices autonomes sont dans `chapitres/<chapitre>/exercices/`, les feuille
 
 La recherche ouvre un fichier sans filtrer le panneau. Elle ignore les accents et la casse, et place en premier les fichiers ouverts puis les fichiers récemment consultés. Les filtres du panneau restent appliqués. Le catalogue public est régénéré automatiquement si les sources Typst ont changé sur disque, avec un regroupement des changements toutes les cinq secondes. Une erreur conserve le dernier catalogue valide.
 
+Pour diagnostiquer une régénération inattendue, ouvrir **Affichage → Sortie → Exercices MPI**. Les lignes `Catalogue` indiquent l’heure UTC, la banque, le type d’événement reçu et le chemin relatif du fichier déclencheur. Chaque demande de régénération précise sa cause (événements automatiques, commande manuelle, catalogue absent ou création d’exercice), puis sa fin ou son échec. Un événement de fichier ne garantit pas que son contenu a changé.
+
 **Créer un exercice** utilise le modèle du dépôt et le vocabulaire de sa bibliothèque. Dans le privé, ce vocabulaire vient de la révision publique verrouillée. **Créer un document** propose les modèles de `templates/`. Les destinations suggérées suivent la structure ci-dessus et restent modifiables.
 
 Les TD et devoirs composés démarrent vides : sélectionner un document, puis ajouter ou glisser des exercices du même dépôt. Les flèches réordonnent les exercices et **×** retire leur import. Les compositions calculées restent modifiables dans la source. Les modifications sont enregistrées et annulables. Un import utilisé ailleurs et un barème personnalisé empêchent une réécriture ambiguë.

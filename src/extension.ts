@@ -98,6 +98,18 @@ export async function activate(context: vscode.ExtensionContext) {
     update();
   }
   const hasCatalogue = (bank: Bank) => existsSync(path.join(bank.root, 'scripts/catalogue.py'));
+  const catalogueLog = (bank: Bank, message: string) => runner.output.appendLine(`[${new Date().toISOString()}] Catalogue [${bank.name}] ${message}`);
+  async function regenerateCatalogue(bank: Bank, reason: string): Promise<void> {
+    catalogueLog(bank, `Régénération demandée : ${reason}`);
+    const start = Date.now();
+    try {
+      await runner.run(bank, ['catalogue']);
+      catalogueLog(bank, `Régénération terminée (${Date.now() - start} ms, attente comprise).`);
+    } catch (error) {
+      catalogueLog(bank, `Régénération échouée ou annulée (${Date.now() - start} ms) : ${error}`);
+      throw error;
+    }
+  }
   async function load(bank: Bank): Promise<void> {
     if (!hasCatalogue(bank)) { await scan(bank, library); return; }
     const catalogue = parseCatalogue(await readFile(path.join(bank.root, 'build/catalogue.json'), 'utf8'));
@@ -122,7 +134,7 @@ export async function activate(context: vscode.ExtensionContext) {
         if (vscode.extensions.getExtension('myriad-dreamin.tinymist') && vscode.workspace.isTrusted)
           void environment(bank).catch(error => { if (!disposed) runner.output.appendLine(`Préparation de l’environnement [${bank.name}] : ${error}`); });
         try {
-          if (hasCatalogue(bank) && !existsSync(path.join(root, 'build/catalogue.json'))) await runner.run(bank, ['catalogue']);
+          if (hasCatalogue(bank) && !existsSync(path.join(root, 'build/catalogue.json'))) await regenerateCatalogue(bank, 'catalogue absent à la découverte de la banque');
           await load(bank);
         } catch (error) { report(error); await scan(bank, library); }
         await scan(bank, sheets);
@@ -131,23 +143,28 @@ export async function activate(context: vscode.ExtensionContext) {
         const reload = () => { clearTimeout(timer); timer = setTimeout(() => { void load(bank).catch(report); }, 200); };
         catalogue.onDidChange(reload); catalogue.onDidCreate(reload);
         watchers.push(catalogue, { dispose: () => clearTimeout(timer) });
+        let pendingEvents = 0;
         const refresh = new Refresh(async () => {
-          if (hasCatalogue(bank)) await runner.run(bank, ['catalogue']);
+          const count = pendingEvents; pendingEvents = 0;
+          if (hasCatalogue(bank)) await regenerateCatalogue(bank, `automatique, ${count} événement(s) fichier depuis le lot précédent (voir ci-dessus)`);
           if (disposed || !banks.includes(bank)) return;
           await load(bank);
           await scan(bank, sheets);
         }, report);
         // Imports can affect computed metadata: conservatively track all Typst sources.
         const sources = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(vscode.Uri.file(root), '**/*.typ'));
-        const mark = (uri: vscode.Uri) => {
+        catalogueLog(bank, `Surveillance des sources Typst : ${root}`);
+        const mark = (event: string, uri: vscode.Uri) => {
           const parts = path.relative(root, uri.fsPath).split(path.sep);
           if (parts.some(part => ['.git', '.direnv', '.typst', 'build', 'tmp', '__pycache__', 'node_modules'].includes(part))) return;
+          pendingEvents++;
+          catalogueLog(bank, `Événement ${event} : ${JSON.stringify(parts.join('/'))} ; régénération automatique en attente.`);
           refresh.mark();
           if (isLibrarySource(parts) && existsSync(path.join(root, 'lib/meta.typ'))) libraryChanges.mark();
         };
-        sources.onDidChange(mark);
-        sources.onDidCreate(mark);
-        sources.onDidDelete(mark);
+        sources.onDidChange(uri => mark('modification', uri));
+        sources.onDidCreate(uri => mark('création', uri));
+        sources.onDidDelete(uri => mark('suppression', uri));
         watchers.push(refresh, sources);
         for (const browser of browsers) {
           const files = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(vscode.Uri.file(root), '**/*.typ'));
@@ -293,7 +310,7 @@ export async function activate(context: vscode.ExtensionContext) {
     if (source.documentType) sheetEditor.selected = source;
     await sheetView.reveal(source, { select: true, expand: true });
   }
-  register('refresh', async () => { await discovery; if (!banks.length) await discoverQueued(); for (const bank of banks) { if (hasCatalogue(bank)) await runner.run(bank, ['catalogue']); await load(bank); await scan(bank, sheets); } });
+  register('refresh', async () => { await discovery; if (!banks.length) await discoverQueued(); for (const bank of banks) { if (hasCatalogue(bank)) await regenerateCatalogue(bank, 'commande manuelle Régénérer le catalogue'); await load(bank); await scan(bank, sheets); } });
   register('source', async (argument?: BrowserNode | vscode.Uri) => { const source = await chooseSource(argument); if (source) await vscode.window.showTextDocument(vscode.Uri.file(path.join(source.bank.root, source.source))); });
   register('code', async (argument?: BrowserNode | vscode.Uri) => { const source = await chooseSource(argument); if (source) await openAssociatedCode(source); });
   register('currentCorrige', async () => {
@@ -313,9 +330,9 @@ export async function activate(context: vscode.ExtensionContext) {
   register('newExercise', async (argument?: Location) => {
     await discovery;
     const bank = argument?.bank ?? await selectBank(banks.filter(bank => existsSync(path.join(bank.root, 'templates/exercice.typ'))));
-    if (hasCatalogue(bank)) { await runner.run(bank, ['catalogue']); await load(bank); }
+    if (hasCatalogue(bank)) { await regenerateCatalogue(bank, 'préparation de la création d’un exercice'); await load(bank); }
     const uri = await newExercise(bank, entries(), argument?.source);
-    if (hasCatalogue(bank)) await runner.run(bank, ['catalogue']);
+    if (hasCatalogue(bank)) await regenerateCatalogue(bank, 'fin de la création d’un exercice');
     await load(bank);
     await vscode.window.showTextDocument(uri);
   });
