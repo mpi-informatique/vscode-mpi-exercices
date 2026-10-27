@@ -63,6 +63,7 @@ Par exemple, `!exercice-titre` insère `#exercice(titre: [Titre])[…]`. Le titr
 
 | Autre préfixe | Contenu inséré |
 | --- | --- |
+| `!lien` | `#lien("…")[…]` avec autocomplétion des ressources publiques |
 | `!solution` | Solution de cours |
 | `!exsol` | Exercice de cours suivi de sa solution |
 | `!solpause` | Solution avec `#pause` |
@@ -76,6 +77,8 @@ Par exemple, `!exercice-titre` insère `#exercice(titre: [Titre])[…]`. Le titr
 | `!slides-only` | Contenu réservé aux diapositives |
 | `!article-only` | Contenu réservé au cours A4 |
 | `!exercice-banque` | Fichier d'exercice réutilisable exportant `ex` |
+
+Dans `!lien`, choisir une ressource dans les suggestions (identifiant, titre et type), puis utiliser Tab pour saisir le texte du lien. Ctrl+Espace rouvre les suggestions dans les guillemets d’un appel à `lien`. Importer `lien` depuis `/load.typ`.
 
 Ces blocs utilisent les fonctions de la bibliothèque MPI, à importer comme dans les modèles de `templates/`. Les environnements encadrés utilisent les fonctions françaises de `theoremes` et le paramètre `titre:` ; `solution`, `slides-only`, `article-only`, `nouvelle-diapositive` et `taille-presentation` viennent de `/load.typ`. Les questions s'utilisent en mode code dans le tuple `contenu` et incluent leur virgule finale. **F4** conserve la création guidée avec les métadonnées du dépôt.
 

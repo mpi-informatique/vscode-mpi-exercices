@@ -1,4 +1,9 @@
 {
+  "MPI — Lien vers une ressource": {
+    "prefix": "!lien",
+    "body": "#lien(\"${1}\")[${2:${TM_SELECTED_TEXT}}]$0",
+    "description": "Lien bleu vers une ressource publique ; suggestions dans les guillemets, puis Tab pour le texte"
+  },
   "MPI — solution": {
     "prefix": "!solution",
     "body": [

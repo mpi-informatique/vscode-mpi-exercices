@@ -21,12 +21,18 @@ import { mask } from './typst';
 import { environment, disposeEnvironments } from './environment';
 import { bankCandidates } from './discovery';
 import { CodeLinks, openAssociatedCode } from './code-files';
+import { LinkCompletion } from './link-completion';
 
 export async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(vscode.workspace.onDidChangeTextDocument(event => {
     if (event.document.languageId !== 'typst' || vscode.window.activeTextEditor?.document !== event.document || event.reason !== undefined) return;
     if (event.contentChanges.length === 1 && event.contentChanges[0].text === '!' && event.contentChanges[0].rangeLength === 0) {
       void vscode.commands.executeCommand('editor.action.triggerSuggest');
+    }
+    if (event.contentChanges.some(change => /^#lien\(""\)\[/.test(change.text))) {
+      setTimeout(() => {
+        if (vscode.window.activeTextEditor?.document === event.document) void vscode.commands.executeCommand('editor.action.triggerSuggest');
+      }, 0);
     }
   }));
   const runner = new Runner();
@@ -98,6 +104,10 @@ export async function activate(context: vscode.ExtensionContext) {
     update();
   }
   const hasCatalogue = (bank: Bank) => existsSync(path.join(bank.root, 'scripts/catalogue.py'));
+  context.subscriptions.push(vscode.languages.registerCompletionItemProvider({ language: 'typst' }, new LinkCompletion(async () => {
+    await discovery;
+    return browsers.flatMap(browser => browser.entries).filter(source => hasCatalogue(source.bank));
+  }), '"'));
   const catalogueLog = (bank: Bank, message: string) => runner.output.appendLine(`[${new Date().toISOString()}] Catalogue [${bank.name}] ${message}`);
   async function regenerateCatalogue(bank: Bank, reason: string): Promise<void> {
     catalogueLog(bank, `Régénération demandée : ${reason}`);

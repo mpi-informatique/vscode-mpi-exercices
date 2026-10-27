@@ -41,6 +41,34 @@ export async function run(_api: unknown, extension: vscode.Extension<unknown>): 
     editor.selection = new vscode.Selection(0, 0, 0, 0);
     await vscode.commands.executeCommand('editor.action.insertSnippet', { langId: 'typst', name: 'MPI — Nouvelle diapositive' });
     assert.equal(document.getText(), '#nouvelle-diapositive()');
+
+    await vscode.commands.executeCommand('leaveSnippet');
+    await editor.edit(edit => edit.replace(new vscode.Range(document.positionAt(0), document.positionAt(document.getText().length)), ''));
+    editor.selection = new vscode.Selection(0, 0, 0, 0);
+    await vscode.commands.executeCommand('editor.action.insertSnippet', { langId: 'typst', name: 'MPI — Lien vers une ressource' });
+    assert.equal(document.getText(), '#lien("")[]');
+    assert.equal(editor.selection.active.character, 7, 'Le premier champ attend un identifiant');
+    const suggestions = await vscode.commands.executeCommand<vscode.CompletionList>('vscode.executeCompletionItemProvider', document.uri, editor.selection.active);
+    const tp = suggestions.items.find(item => typeof item.label !== 'string' && item.label.label === 'tp-automates');
+    assert.ok(tp, 'Le provider enregistré propose les TP publics');
+    assert.match(tp.detail!, /^TP — /);
+    assert.equal(tp.insertText, 'tp-automates');
+    assert.ok(suggestions.items.some(item => typeof item.label !== 'string' && item.label.label === 'residuels-minimisation'), 'Les exercices sont aussi proposés');
+    await vscode.commands.executeCommand('hideSuggestWidget');
+    await vscode.commands.executeCommand('jumpToNextSnippetPlaceholder');
+    assert.equal(editor.selection.active.character, 10, 'Tab rejoint le texte du lien');
+    await vscode.commands.executeCommand('leaveSnippet');
+
+    for (const [content, cursor] of [['#lien("tp-ancien")[Texte]', 10], ['// #lien("")', 10], ['`#lien("")`', 8], ['#lien("tp-automates")[Texte]', 24]] as const) {
+      await editor.edit(edit => edit.replace(new vscode.Range(document.positionAt(0), document.positionAt(document.getText().length)), content));
+      const result = await vscode.commands.executeCommand<vscode.CompletionList>('vscode.executeCompletionItemProvider', document.uri, document.positionAt(cursor));
+      const resource = result.items.find(item => typeof item.label !== 'string' && item.label.label === 'tp-automates');
+      if (content.includes('tp-ancien')) {
+        assert.ok(resource, 'Complétion au milieu d’un identifiant');
+        assert.ok(resource.range instanceof vscode.Range);
+        assert.equal(document.getText(resource.range), 'tp-ancien', 'Remplacement de tout l’identifiant, suffixe compris');
+      } else assert.equal(resource, undefined, 'Pas de suggestions de ressources dans les commentaires, le code brut ou le texte du lien');
+    }
   } finally {
     await vscode.commands.executeCommand('leaveSnippet');
     await vscode.commands.executeCommand('workbench.action.revertAndCloseActiveEditor');
