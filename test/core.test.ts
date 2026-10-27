@@ -9,11 +9,12 @@ import { sheetList, editSheet, sourceMetadata } from '../src/sheet-model';
 import { bridgeHtml } from '../src/preview-bridge';
 import { creationPath, contestFromTemplate } from '../src/typst';
 import { Refresh, isLibrarySource } from '../src/refresh';
+import { SourceChanges, watchedSource } from '../src/source-changes';
 import { EnvironmentCache } from '../src/environment-cache';
 import { Preparation } from '../src/preparation';
 import { bankCandidates } from '../src/discovery';
 import { copyDirectory, copyInputs } from '../src/copy-inputs';
-import { mkdtemp, mkdir, rm, writeFile, readFile } from 'node:fs/promises';
+import { mkdtemp, mkdir, rm, writeFile, readFile, stat, utimes } from 'node:fs/promises';
 import * as path from 'node:path';
 import { tmpdir } from 'node:os';
 import { runInNewContext } from 'node:vm';
@@ -21,6 +22,42 @@ import { runInNewContext } from 'node:vm';
 test('bibliothèque : réserver le redémarrage Tinymist aux sources du package partagé', () => {
   for (const source of ['load.typ', 'lib/meta.typ', 'lib/themes/madrid.typ']) assert.equal(isLibrarySource(source.split('/')), true, source);
   for (const source of ['chapitres/graphes/cours.typ', 'chapitres/graphes/exercices/parcours.typ', 'devoirs/ds1.typ', 'templates/cours.typ', 'lib/tests/blocs.typ', 'chapitres/lib/exercice.typ']) assert.equal(isLibrarySource(source.split('/')), false, source);
+});
+
+test('sources : ignorer les notifications sans changement et conserver créations, modifications et suppressions', async () => {
+  const directory = await mkdtemp(path.join(tmpdir(), 'mpi-source-changes-'));
+  const file = path.join(directory, 'blocs.typ');
+  const added = path.join(directory, 'nouveau.typ');
+  const changes = new SourceChanges();
+  try {
+    await writeFile(file, 'avant');
+    await changes.prime([file]);
+    assert.equal(await changes.changed(file), false, 'La première notification sans changement est ignorée');
+    await writeFile(file, 'avant');
+    assert.equal(await changes.changed(file), false, 'Une réécriture identique ne déclenche rien');
+    const dates = await stat(file);
+    await writeFile(file, 'apres');
+    await utimes(file, dates.atime, dates.mtime);
+    const results = await Promise.all(Array.from({ length: 12 }, () => changes.changed(file)));
+    assert.equal(results.filter(Boolean).length, 1, 'Une seule réaction au changement, même avec des notifications concurrentes et les mêmes taille/date');
+    await writeFile(added, 'nouveau');
+    assert.equal(await changes.changed(added), true, 'Création après la photographie initiale');
+    assert.equal(await changes.changed(added), false);
+    await rm(file);
+    assert.equal(await changes.changed(file), true, 'Suppression');
+    assert.equal(await changes.changed(file), false, 'Suppression notifiée plusieurs fois');
+    await writeFile(file, 'apres');
+    assert.equal(await changes.changed(file), true, 'Recréation avec le même contenu que le fichier supprimé');
+    await rm(file);
+    await mkdir(file);
+    await assert.rejects(changes.changed(file), 'Une erreur de lecture ne doit pas être assimilée à une suppression');
+    await rm(file, { recursive: true });
+    await writeFile(file, 'apres');
+    assert.equal(await changes.changed(file), false, 'Une erreur de lecture conserve la dernière empreinte valide');
+    assert.equal(await changes.changed(path.join(directory, 'absent.typ')), false);
+  } finally { await rm(directory, { recursive: true, force: true }); }
+  for (const source of ['build/document.typ', '.git/test.typ', 'lib/node_modules/exemple.typ']) assert.equal(watchedSource(source.split('/')), false);
+  for (const source of ['lib/blocs.typ', 'load.typ', 'lib/tests/test.typ']) assert.equal(watchedSource(source.split('/')), true);
 });
 
 test('environnement : réutiliser Nix, invalider les sources et réglages, réessayer après une erreur', async () => {

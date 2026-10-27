@@ -22,6 +22,7 @@ import { environment, disposeEnvironments } from './environment';
 import { bankCandidates } from './discovery';
 import { CodeLinks, openAssociatedCode } from './code-files';
 import { LinkCompletion } from './link-completion';
+import { SourceChanges, sourceWatchExclusions, watchedSource } from './source-changes';
 
 export async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(vscode.workspace.onDidChangeTextDocument(event => {
@@ -161,28 +162,33 @@ export async function activate(context: vscode.ExtensionContext) {
           await load(bank);
           await scan(bank, sheets);
         }, report);
-        // Imports can affect computed metadata: conservatively track all Typst sources.
+        // Imports can affect computed metadata: compare the contents of all Typst sources.
+        const changes = new SourceChanges();
+        const initialSources = await vscode.workspace.findFiles(new vscode.RelativePattern(vscode.Uri.file(root), '**/*.typ'), sourceWatchExclusions);
+        await changes.prime(initialSources.map(uri => uri.fsPath));
         const sources = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(vscode.Uri.file(root), '**/*.typ'));
         catalogueLog(bank, `Surveillance des sources Typst : ${root}`);
-        const mark = (event: string, uri: vscode.Uri) => {
+        const mark = async (event: string, uri: vscode.Uri) => {
           const parts = path.relative(root, uri.fsPath).split(path.sep);
-          if (parts.some(part => ['.git', '.direnv', '.typst', 'build', 'tmp', '__pycache__', 'node_modules'].includes(part))) return;
+          if (!watchedSource(parts)) return;
+          const changed = await changes.changed(uri.fsPath);
+          if (disposed || !banks.includes(bank)) return;
+          if (!changed) {
+            catalogueLog(bank, `Événement ${event} ignoré (contenu identique) : ${JSON.stringify(parts.join('/'))}.`);
+            return;
+          }
           pendingEvents++;
           catalogueLog(bank, `Événement ${event} : ${JSON.stringify(parts.join('/'))} ; régénération automatique en attente.`);
           refresh.mark();
           if (isLibrarySource(parts) && existsSync(path.join(root, 'lib/meta.typ'))) libraryChanges.mark();
+          for (const browser of browsers) {
+            if (event !== 'modification' || browser !== library) void scan(bank, browser).catch(report);
+          }
         };
-        sources.onDidChange(uri => mark('modification', uri));
-        sources.onDidCreate(uri => mark('création', uri));
-        sources.onDidDelete(uri => mark('suppression', uri));
+        sources.onDidChange(uri => { void mark('modification', uri).catch(report); });
+        sources.onDidCreate(uri => { void mark('création', uri).catch(report); });
+        sources.onDidDelete(uri => { void mark('suppression', uri).catch(report); });
         watchers.push(refresh, sources);
-        for (const browser of browsers) {
-          const files = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(vscode.Uri.file(root), '**/*.typ'));
-          const rescan = () => { void scan(bank, browser).catch(report); };
-          files.onDidCreate(rescan); files.onDidDelete(rescan);
-          if (browser !== library) files.onDidChange(rescan);
-          watchers.push(files);
-        }
       }
     }
     for (const browser of browsers) browser.changed.fire();

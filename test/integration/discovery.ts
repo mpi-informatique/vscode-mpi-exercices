@@ -5,6 +5,7 @@ import { identify, sourceExclusions } from '../../src/documents';
 import { mkdtemp, mkdir, writeFile, realpath, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { until } from './helpers';
+import { SourceChanges } from '../../src/source-changes';
 
 export async function run(api: any, extension: vscode.Extension<any>): Promise<void> {
   const manifest = extension.packageJSON.contributes;
@@ -28,7 +29,45 @@ export async function run(api: any, extension: vscode.Extension<any>): Promise<v
   const revealed = await api.revealSheet(path.relative(process.env.MPI_EXERCICES_ROOT!, nestedSheet.fsPath));
   assert.equal(revealed.source, path.relative(process.env.MPI_EXERCICES_ROOT!, nestedSheet.fsPath), 'Sélection réelle de la feuille avec TreeView.reveal');
   await parentWorkspace(api);
+  await contentNotifications();
   console.log('Découverte et commandes vérifiées.');
+}
+
+async function contentNotifications(): Promise<void> {
+  const directory = await realpath(await mkdtemp(path.join(tmpdir(), 'mpi-watch-content-')));
+  const file = path.join(directory, 'exemple.typ');
+  const changes = new SourceChanges();
+  const observed: boolean[] = [];
+  const errors: unknown[] = [];
+  let watcher: vscode.FileSystemWatcher | undefined;
+  try {
+    await writeFile(file, 'Contenu fictif.');
+    await changes.prime([file]);
+    watcher = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(directory, '*.typ'));
+    const changed = (uri: vscode.Uri) => { void changes.changed(uri.fsPath).then(value => { observed.push(value); }, error => { errors.push(error); }); };
+    watcher.onDidChange(changed);
+    watcher.onDidCreate(changed);
+    watcher.onDidDelete(changed);
+    // Watch registration is asynchronous: repeat an identical write until VS Code is listening.
+    await until(async () => {
+      await writeFile(file, 'Contenu fictif.');
+      return observed.length > 0 || errors.length > 0;
+    }, 'Notification VS Code pour une réécriture identique');
+    assert.deepEqual(errors, []);
+    assert.ok(observed.every(value => !value), 'Une vraie notification sans changement de contenu est ignorée');
+    await writeFile(file, 'Contenu modifié.');
+    await until(() => observed.filter(Boolean).length === 1 || errors.length > 0, 'Détection du changement de contenu');
+    assert.deepEqual(errors, []);
+    await rm(file);
+    await until(() => observed.filter(Boolean).length === 2 || errors.length > 0, 'Détection de la suppression');
+    assert.deepEqual(errors, []);
+    await writeFile(file, 'Contenu modifié.');
+    await until(() => observed.filter(Boolean).length === 3 || errors.length > 0, 'Détection de la recréation');
+    assert.deepEqual(errors, []);
+  } finally {
+    watcher?.dispose();
+    await rm(directory, { recursive: true, force: true });
+  }
 }
 
 async function parentWorkspace(api: any): Promise<void> {
