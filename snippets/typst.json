@@ -335,6 +335,18 @@
     ],
     "description": "Deux colonnes dans le cours, contenus à la suite dans la présentation (bibliothèque MPI)"
   },
+  "MPI — Liste du cours": {
+    "prefix": "!liste-cours",
+    "body": [
+      "#liste-cours(",
+      "  columns: 2,",
+      "  [${1:${TM_SELECTED_TEXT}}],",
+      "  [${2}],",
+      ")",
+      "$0"
+    ],
+    "description": "Liste numérotée en colonnes de même largeur dans le cours, continue en présentation (bibliothèque MPI)"
+  },
   "MPI — Taille en présentation": {
     "prefix": "!taille-presentation",
     "body": "#taille-presentation(${1:0.92em})[${2:${TM_SELECTED_TEXT}}]$0",

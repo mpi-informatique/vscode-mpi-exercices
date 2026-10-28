@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import * as path from 'node:path';
+import { until } from './helpers';
 
 type Snippet = { prefix: string; body: string | string[] };
 
@@ -46,6 +47,36 @@ export async function run(_api: unknown, extension: vscode.Extension<unknown>): 
     assert.equal(editor.selection.active.line, 6, 'Tab rejoint la seconde colonne');
     await vscode.commands.executeCommand('jumpToNextSnippetPlaceholder');
     assert.equal(editor.selection.active.line, 9, 'Tab quitte les colonnes');
+
+    await vscode.commands.executeCommand('leaveSnippet');
+    await vscode.commands.executeCommand('hideSuggestWidget');
+    await editor.edit(edit => edit.replace(new vscode.Range(document.positionAt(0), document.positionAt(document.getText().length)), ''));
+    editor.selection = new vscode.Selection(0, 0, 0, 0);
+    let generalRequests = 0;
+    const generalProvider = vscode.languages.registerCompletionItemProvider({ language: 'typst' }, {
+      async provideCompletionItems() {
+        generalRequests++;
+        await new Promise(resolve => setTimeout(resolve, 500));
+        return [];
+      }
+    });
+    try {
+      await vscode.commands.executeCommand('default:type', { text: '!' });
+      await vscode.commands.executeCommand('default:type', { text: 'liste-cours' });
+      await until(async () => {
+        await vscode.commands.executeCommand('acceptSelectedSuggestion');
+        return document.getText().startsWith('#liste-cours(');
+      }, 'La saisie de !liste-cours doit proposer le snippet sans appel manuel à la complétion');
+      assert.equal(generalRequests, 0, 'Le déclenchement par ! n’interroge pas les fournisseurs généraux, même lents');
+      assert.equal(document.getText(), '#liste-cours(\n  columns: 2,\n  [],\n  [],\n)\n');
+      assert.equal(editor.selection.active.line, 2, 'Premier champ : premier élément de la liste');
+      await vscode.commands.executeCommand('jumpToNextSnippetPlaceholder');
+      assert.equal(editor.selection.active.line, 3, 'Tab rejoint le second élément');
+      await vscode.commands.executeCommand('jumpToNextSnippetPlaceholder');
+      assert.equal(editor.selection.active.line, 5, 'Tab quitte la liste');
+    } finally {
+      generalProvider.dispose();
+    }
 
     await vscode.commands.executeCommand('leaveSnippet');
     await editor.edit(edit => edit.replace(new vscode.Range(document.positionAt(0), document.positionAt(document.getText().length)), ''));

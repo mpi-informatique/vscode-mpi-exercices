@@ -25,11 +25,10 @@ import { LinkCompletion } from './link-completion';
 import { SourceChanges, sourceWatchExclusions, watchedSource } from './source-changes';
 
 export async function activate(context: vscode.ExtensionContext) {
+  // Un caractère déclencheur inclut les snippets natifs sans interroger tous les fournisseurs de complétion.
+  context.subscriptions.push(vscode.languages.registerCompletionItemProvider({ language: 'typst' }, { provideCompletionItems: () => [] }, '!'));
   context.subscriptions.push(vscode.workspace.onDidChangeTextDocument(event => {
     if (event.document.languageId !== 'typst' || vscode.window.activeTextEditor?.document !== event.document || event.reason !== undefined) return;
-    if (event.contentChanges.length === 1 && event.contentChanges[0].text === '!' && event.contentChanges[0].rangeLength === 0) {
-      void vscode.commands.executeCommand('editor.action.triggerSuggest');
-    }
     if (event.contentChanges.some(change => /^#lien\(""\)\[/.test(change.text))) {
       setTimeout(() => {
         if (vscode.window.activeTextEditor?.document === event.document) void vscode.commands.executeCommand('editor.action.triggerSuggest');
