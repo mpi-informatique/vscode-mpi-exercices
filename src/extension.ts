@@ -23,10 +23,10 @@ import { bankCandidates } from './discovery';
 import { CodeLinks, openAssociatedCode } from './code-files';
 import { LinkCompletion } from './link-completion';
 import { SourceChanges, sourceWatchExclusions, watchedSource } from './source-changes';
+import { registerSnippetPicker } from './snippet-picker';
 
 export async function activate(context: vscode.ExtensionContext) {
-  // Un caractère déclencheur inclut les snippets natifs sans interroger tous les fournisseurs de complétion.
-  context.subscriptions.push(vscode.languages.registerCompletionItemProvider({ language: 'typst' }, { provideCompletionItems: () => [] }, '!'));
+  context.subscriptions.push(registerSnippetPicker(JSON.parse(await readFile(path.join(context.extensionPath, 'snippets/typst.json'), 'utf8'))));
   context.subscriptions.push(vscode.workspace.onDidChangeTextDocument(event => {
     if (event.document.languageId !== 'typst' || vscode.window.activeTextEditor?.document !== event.document || event.reason !== undefined) return;
     if (event.contentChanges.some(change => /^#lien\(""\)\[/.test(change.text))) {

@@ -52,31 +52,41 @@ export async function run(_api: unknown, extension: vscode.Extension<unknown>): 
     await vscode.commands.executeCommand('hideSuggestWidget');
     await editor.edit(edit => edit.replace(new vscode.Range(document.positionAt(0), document.positionAt(document.getText().length)), ''));
     editor.selection = new vscode.Selection(0, 0, 0, 0);
-    let generalRequests = 0;
+    const releaseCompletions: (() => void)[] = [];
     const generalProvider = vscode.languages.registerCompletionItemProvider({ language: 'typst' }, {
-      async provideCompletionItems() {
-        generalRequests++;
-        await new Promise(resolve => setTimeout(resolve, 500));
-        return [];
+      provideCompletionItems() {
+        return new Promise<vscode.CompletionItem[]>(resolve => releaseCompletions.push(() => resolve([])));
       }
-    });
+    }, '!');
     try {
       await vscode.commands.executeCommand('default:type', { text: '!' });
-      await vscode.commands.executeCommand('default:type', { text: 'liste-cours' });
       await until(async () => {
-        await vscode.commands.executeCommand('acceptSelectedSuggestion');
-        return document.getText().startsWith('#liste-cours(');
-      }, 'La saisie de !liste-cours doit proposer le snippet sans appel manuel à la complétion');
-      assert.equal(generalRequests, 0, 'Le déclenchement par ! n’interroge pas les fournisseurs généraux, même lents');
-      assert.equal(document.getText(), '#liste-cours(\n  columns: 2,\n  [],\n  [],\n)\n');
-      assert.equal(editor.selection.active.line, 2, 'Premier champ : premier élément de la liste');
-      await vscode.commands.executeCommand('jumpToNextSnippetPlaceholder');
-      assert.equal(editor.selection.active.line, 3, 'Tab rejoint le second élément');
-      await vscode.commands.executeCommand('jumpToNextSnippetPlaceholder');
-      assert.equal(editor.selection.active.line, 5, 'Tab quitte la liste');
+        await vscode.commands.executeCommand('workbench.action.acceptSelectedQuickOpenItem');
+        return document.getText().startsWith('#algorithme[');
+      }, 'Le menu local doit insérer son premier snippet sans attendre le fournisseur déclenché par !');
+      assert.equal(document.getText(), '#algorithme[\n  \n]\n', 'Le ! ne remplit pas le premier champ');
     } finally {
+      for (const release of releaseCompletions) release();
       generalProvider.dispose();
     }
+
+    await vscode.commands.executeCommand('leaveSnippet');
+    await editor.edit(edit => edit.replace(new vscode.Range(document.positionAt(0), document.positionAt(document.getText().length)), ''));
+    editor.selection = new vscode.Selection(0, 0, 0, 0);
+    await vscode.commands.executeCommand('editor.action.insertSnippet', { langId: 'typst', name: 'MPI — Liste du cours' });
+    assert.equal(document.getText(), '#liste-cours(\n  columns: 2,\n  [],\n  [],\n)\n');
+    assert.equal(editor.selection.active.line, 2, 'Premier champ : premier élément de la liste');
+    await vscode.commands.executeCommand('jumpToNextSnippetPlaceholder');
+    assert.equal(editor.selection.active.line, 3, 'Tab rejoint le second élément');
+    await vscode.commands.executeCommand('jumpToNextSnippetPlaceholder');
+    assert.equal(editor.selection.active.line, 5, 'Tab quitte la liste');
+
+    await vscode.commands.executeCommand('leaveSnippet');
+    await editor.edit(edit => edit.replace(new vscode.Range(document.positionAt(0), document.positionAt(document.getText().length)), ''));
+    editor.selection = new vscode.Selection(0, 0, 0, 0);
+    await vscode.commands.executeCommand('default:type', { text: '!' });
+    await vscode.commands.executeCommand('workbench.action.closeQuickOpen');
+    assert.equal(document.getText(), '!', 'Annuler le menu conserve le texte saisi');
 
     await vscode.commands.executeCommand('leaveSnippet');
     await editor.edit(edit => edit.replace(new vscode.Range(document.positionAt(0), document.positionAt(document.getText().length)), ''));

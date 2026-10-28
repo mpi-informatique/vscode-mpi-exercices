@@ -42,7 +42,7 @@ Glisser un fichier sur un dossier permet de le déplacer dans son dépôt : les 
 
 ## Snippets Typst
 
-Dans un fichier `.typ`, saisir **`!` pour ouvrir les suggestions**, puis compléter le préfixe et choisir le snippet **MPI — …**. Ce caractère déclenche directement les snippets natifs, sans attendre une complétion générale du serveur de langage ; le réglage VS Code `editor.suggestOnTriggerCharacters` doit être activé (valeur par défaut). Chaque snippet possède un seul préfixe. Tab passe au champ suivant ; Maj+Tab revient au précédent. **Snippets: Insert Snippet** permet aussi d'insérer le texte sélectionné dans un bloc.
+Dans un fichier `.typ`, saisir **`!` pour ouvrir le menu local Snippets MPI** en haut de la fenêtre. Saisir le nom ou le préfixe pour filtrer, puis valider avec Entrée. Les choix sont déjà en mémoire et ne dépendent pas du serveur de langage. Échap ferme le menu en conservant le `!`. Chaque snippet possède un seul préfixe. Tab passe au champ suivant ; Maj+Tab revient au précédent. **Snippets: Insert Snippet** permet aussi d'insérer le texte sélectionné dans un bloc.
 
 Les noms et préfixes des blocs sont en français, sans accents dans les préfixes. `!exemple` désigne le titre souligné en ligne et `!exemple-bloc` le bloc numéroté. Chaque bloc numéroté possède une variante avec titre, repérée par `-titre` :
 
