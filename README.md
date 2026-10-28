@@ -70,6 +70,7 @@ Par exemple, `!exercice-titre` insère `#exercice(titre: [Titre])[…]`. Le titr
 | `!remarque` | `#underline[Remarque] : ` |
 | `!exemple` | `#underline[Exemple] : ` |
 | `!attention` | `#underline[Attention] : ` |
+| `!colonnes-cours` | Deux colonnes dans le cours, contenus à la suite en présentation |
 | `!taille-presentation` | `#taille-presentation(0.92em)[…]` |
 | `!question` | Question et solution dans `contenu: (…)` |
 | `!question-bareme` | Question avec points et étiquette |
@@ -80,7 +81,7 @@ Par exemple, `!exercice-titre` insère `#exercice(titre: [Titre])[…]`. Le titr
 
 Dans `!lien`, choisir une ressource dans les suggestions (identifiant, titre et type), puis utiliser Tab pour saisir le texte du lien. Ctrl+Espace rouvre les suggestions dans les guillemets d’un appel à `lien`. Importer `lien` depuis `/load.typ`.
 
-Ces blocs utilisent les fonctions de la bibliothèque MPI, à importer comme dans les modèles de `templates/`. Les environnements encadrés utilisent les fonctions françaises de `theoremes` et le paramètre `titre:` ; `solution`, `slides-only`, `article-only`, `nouvelle-diapositive` et `taille-presentation` viennent de `/load.typ`. Les questions s'utilisent en mode code dans le tuple `contenu` et incluent leur virgule finale. **F4** conserve la création guidée avec les métadonnées du dépôt.
+Ces blocs utilisent les fonctions de la bibliothèque MPI, à importer comme dans les modèles de `templates/`. Les environnements encadrés utilisent les fonctions françaises de `theoremes` et le paramètre `titre:` ; `solution`, `slides-only`, `article-only`, `nouvelle-diapositive`, `colonnes-cours` et `taille-presentation` viennent de `/load.typ`. Les questions s'utilisent en mode code dans le tuple `contenu` et incluent leur virgule finale. **F4** conserve la création guidée avec les métadonnées du dépôt.
 
 Pour développer directement un préfixe avec Tab, activer facultativement `"editor.tabCompletion": "onlySnippets"` dans les réglages VS Code.
 

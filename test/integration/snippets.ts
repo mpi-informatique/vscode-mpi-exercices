@@ -37,6 +37,17 @@ export async function run(_api: unknown, extension: vscode.Extension<unknown>): 
       assert.equal(editor.selection.active.line, compact ? 1 : 3, 'Tab rejoint la sortie du bloc');
     }
     await vscode.commands.executeCommand('leaveSnippet');
+    await editor.edit(edit => edit.replace(new vscode.Range(document.positionAt(0), document.positionAt(document.getText().length)), 'Contenu sélectionné.'));
+    editor.selection = new vscode.Selection(document.positionAt(0), document.positionAt(document.getText().length));
+    await vscode.commands.executeCommand('editor.action.insertSnippet', { langId: 'typst', name: 'MPI — Colonnes du cours' });
+    assert.equal(document.getText(), '#colonnes-cours(\n  columns: (1fr, 1fr),\n  [\n    Contenu sélectionné.\n  ],\n  [\n    \n  ],\n)\n');
+    assert.equal(document.getText(editor.selection), 'Contenu sélectionné.', 'La sélection remplit la première colonne');
+    await vscode.commands.executeCommand('jumpToNextSnippetPlaceholder');
+    assert.equal(editor.selection.active.line, 6, 'Tab rejoint la seconde colonne');
+    await vscode.commands.executeCommand('jumpToNextSnippetPlaceholder');
+    assert.equal(editor.selection.active.line, 9, 'Tab quitte les colonnes');
+
+    await vscode.commands.executeCommand('leaveSnippet');
     await editor.edit(edit => edit.replace(new vscode.Range(document.positionAt(0), document.positionAt(document.getText().length)), ''));
     editor.selection = new vscode.Selection(0, 0, 0, 0);
     await vscode.commands.executeCommand('editor.action.insertSnippet', { langId: 'typst', name: 'MPI — Nouvelle diapositive' });
