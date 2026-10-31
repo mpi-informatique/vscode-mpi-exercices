@@ -9,11 +9,11 @@ type Snippet = { prefix: string; body: string | string[] };
 export async function run(_api: unknown, extension: vscode.Extension<unknown>): Promise<void> {
   const snippets: Record<string, Snippet> = JSON.parse(await readFile(path.join(extension.extensionPath, 'snippets/typst.json'), 'utf8'));
   const prefixes = Object.values(snippets).map(snippet => snippet.prefix);
-  assert.ok(prefixes.every(prefix => typeof prefix === 'string' && prefix.startsWith('!')), 'Un seul préfixe avec ! par snippet');
+  assert.ok(prefixes.every(prefix => typeof prefix === 'string' && prefix.startsWith('²')), 'Un seul préfixe avec ² par snippet');
   assert.equal(new Set(prefixes).size, prefixes.length, 'Préfixes uniques');
   for (const functionName of ['theoreme', 'definition', 'proposition', 'lemme', 'corollaire', 'propriete', 'exemple-bloc', 'exercice', 'probleme', 'algorithme']) {
-    assert.ok(prefixes.includes(`!${functionName}`), `Bloc ${functionName}`);
-    assert.ok(prefixes.includes(`!${functionName}-titre`), `Variante titrée ${functionName}`);
+    assert.ok(prefixes.includes(`²${functionName}`), `Bloc ${functionName}`);
+    assert.ok(prefixes.includes(`²${functionName}-titre`), `Variante titrée ${functionName}`);
   }
   const document = await vscode.workspace.openTextDocument({ language: 'typst', content: '' });
   const editor = await vscode.window.showTextDocument(document);
@@ -22,8 +22,8 @@ export async function run(_api: unknown, extension: vscode.Extension<unknown>): 
       await vscode.commands.executeCommand('leaveSnippet');
       await editor.edit(edit => edit.replace(new vscode.Range(document.positionAt(0), document.positionAt(document.getText().length)), ''));
       editor.selection = new vscode.Selection(0, 0, 0, 0);
-      const name = Object.keys(snippets).find(name => snippets[name].prefix === `!${prefix}`);
-      assert.ok(name, `Snippet !${prefix} enregistré`);
+      const name = Object.keys(snippets).find(name => snippets[name].prefix === `²${prefix}`);
+      assert.ok(name, `Snippet ²${prefix} enregistré`);
       // Choisir le snippet par son nom évite les changements de focus du menu natif au démarrage de VS Code.
       await vscode.commands.executeCommand('editor.action.insertSnippet', { langId: 'typst', name });
       const opening = `#${functionName}${title ? '([Titre])' : ''}[`;
@@ -57,14 +57,14 @@ export async function run(_api: unknown, extension: vscode.Extension<unknown>): 
       provideCompletionItems() {
         return new Promise<vscode.CompletionItem[]>(resolve => releaseCompletions.push(() => resolve([])));
       }
-    }, '!');
+    }, '²');
     try {
-      await vscode.commands.executeCommand('default:type', { text: '!' });
+      await vscode.commands.executeCommand('default:type', { text: '²' });
       await until(async () => {
         await vscode.commands.executeCommand('workbench.action.acceptSelectedQuickOpenItem');
         return document.getText().startsWith('#algorithme[');
-      }, 'Le menu local doit insérer son premier snippet sans attendre le fournisseur déclenché par !');
-      assert.equal(document.getText(), '#algorithme[\n  \n]\n', 'Le ! ne remplit pas le premier champ');
+      }, 'Le menu local doit insérer son premier snippet sans attendre le fournisseur déclenché par ²');
+      assert.equal(document.getText(), '#algorithme[\n  \n]\n', 'Le ² ne remplit pas le premier champ');
     } finally {
       for (const release of releaseCompletions) release();
       generalProvider.dispose();
@@ -84,9 +84,9 @@ export async function run(_api: unknown, extension: vscode.Extension<unknown>): 
     await vscode.commands.executeCommand('leaveSnippet');
     await editor.edit(edit => edit.replace(new vscode.Range(document.positionAt(0), document.positionAt(document.getText().length)), ''));
     editor.selection = new vscode.Selection(0, 0, 0, 0);
-    await vscode.commands.executeCommand('default:type', { text: '!' });
+    await vscode.commands.executeCommand('default:type', { text: '²' });
     await vscode.commands.executeCommand('workbench.action.closeQuickOpen');
-    assert.equal(document.getText(), '!', 'Annuler le menu conserve le texte saisi');
+    assert.equal(document.getText(), '²', 'Annuler le menu conserve le texte saisi');
 
     await vscode.commands.executeCommand('leaveSnippet');
     await editor.edit(edit => edit.replace(new vscode.Range(document.positionAt(0), document.positionAt(document.getText().length)), ''));

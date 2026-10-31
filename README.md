@@ -42,45 +42,45 @@ Glisser un fichier sur un dossier permet de le déplacer dans son dépôt : les 
 
 ## Snippets Typst
 
-Dans un fichier `.typ`, saisir **`!` pour ouvrir le menu local Snippets MPI** en haut de la fenêtre. Saisir le nom ou le préfixe pour filtrer, puis valider avec Entrée. Les choix sont déjà en mémoire et ne dépendent pas du serveur de langage. Échap ferme le menu en conservant le `!`. Chaque snippet possède un seul préfixe. Tab passe au champ suivant ; Maj+Tab revient au précédent. **Snippets: Insert Snippet** permet aussi d'insérer le texte sélectionné dans un bloc.
+Dans un fichier `.typ`, saisir **`²` pour ouvrir le menu local Snippets MPI** en haut de la fenêtre. Saisir le nom ou le préfixe pour filtrer, puis valider avec Entrée. Les choix sont déjà en mémoire et ne dépendent pas du serveur de langage. Échap ferme le menu en conservant le `²`. Chaque snippet possède un seul préfixe. Tab passe au champ suivant ; Maj+Tab revient au précédent. **Snippets: Insert Snippet** permet aussi d'insérer le texte sélectionné dans un bloc.
 
-Les noms et préfixes des blocs sont en français, sans accents dans les préfixes. `!exemple` désigne le titre souligné en ligne et `!exemple-bloc` le bloc numéroté. Chaque bloc numéroté possède une variante avec titre, repérée par `-titre` :
+Les noms et préfixes des blocs sont en français, sans accents dans les préfixes. `²exemple` désigne le titre souligné en ligne et `²exemple-bloc` le bloc numéroté. Chaque bloc numéroté possède une variante avec titre, repérée par `-titre` :
 
 | Bloc | Sans titre | Avec titre |
 | --- | --- | --- |
-| Théorème | `!theoreme` | `!theoreme-titre` |
-| Définition | `!definition` | `!definition-titre` |
-| Proposition | `!proposition` | `!proposition-titre` |
-| Lemme | `!lemme` | `!lemme-titre` |
-| Corollaire | `!corollaire` | `!corollaire-titre` |
-| Propriété | `!propriete` | `!propriete-titre` |
-| Exemple encadré | `!exemple-bloc` | `!exemple-bloc-titre` |
-| Exercice de cours | `!exercice` | `!exercice-titre` |
-| Problème | `!probleme` | `!probleme-titre` |
-| Algorithme | `!algorithme` | `!algorithme-titre` |
+| Théorème | `²theoreme` | `²theoreme-titre` |
+| Définition | `²definition` | `²definition-titre` |
+| Proposition | `²proposition` | `²proposition-titre` |
+| Lemme | `²lemme` | `²lemme-titre` |
+| Corollaire | `²corollaire` | `²corollaire-titre` |
+| Propriété | `²propriete` | `²propriete-titre` |
+| Exemple encadré | `²exemple-bloc` | `²exemple-bloc-titre` |
+| Exercice de cours | `²exercice` | `²exercice-titre` |
+| Problème | `²probleme` | `²probleme-titre` |
+| Algorithme | `²algorithme` | `²algorithme-titre` |
 
-Par exemple, `!exercice-titre` insère `#exercice(titre: [Titre])[…]`. Le titre affiché prend la forme **Exercice 2 : Monoïdes et taille**, avec numérotation automatique et un titre saisi dans le premier champ. Sans titre, seul **Exercice 2** est affiché. Ce rendu utilise la bibliothèque MPI mise à jour.
+Par exemple, `²exercice-titre` insère `#exercice(titre: [Titre])[…]`. Le titre affiché prend la forme **Exercice 2 : Monoïdes et taille**, avec numérotation automatique et un titre saisi dans le premier champ. Sans titre, seul **Exercice 2** est affiché. Ce rendu utilise la bibliothèque MPI mise à jour.
 
 | Autre préfixe | Contenu inséré |
 | --- | --- |
-| `!lien` | `#lien("…")[…]` avec autocomplétion des ressources publiques |
-| `!solution` | Solution de cours |
-| `!exsol` | Exercice de cours suivi de sa solution |
-| `!solpause` | Solution avec `#pause` |
-| `!remarque` | `#underline[Remarque] : ` |
-| `!exemple` | `#underline[Exemple] : ` |
-| `!attention` | `#underline[Attention] : ` |
-| `!colonnes-cours` | Deux colonnes dans le cours, contenus à la suite en présentation |
-| `!liste-cours` | Liste numérotée en colonnes de même largeur dans le cours, continue en présentation |
-| `!taille-presentation` | `#taille-presentation(0.92em)[…]` |
-| `!question` | Question et solution dans `contenu: (…)` |
-| `!question-bareme` | Question avec points et étiquette |
-| `!nouvelle-diapositive` | `#nouvelle-diapositive()` : conserve le titre, sans saut dans le cours |
-| `!slides-only` | Contenu réservé aux diapositives |
-| `!article-only` | Contenu réservé au cours A4 |
-| `!exercice-banque` | Fichier d'exercice réutilisable exportant `ex` |
+| `²lien` | `#lien("…")[…]` avec autocomplétion des ressources publiques |
+| `²solution` | Solution de cours |
+| `²exsol` | Exercice de cours suivi de sa solution |
+| `²solpause` | Solution avec `#pause` |
+| `²remarque` | `#underline[Remarque] : ` |
+| `²exemple` | `#underline[Exemple] : ` |
+| `²attention` | `#underline[Attention] : ` |
+| `²colonnes-cours` | Deux colonnes dans le cours, contenus à la suite en présentation |
+| `²liste-cours` | Liste numérotée en colonnes de même largeur dans le cours, continue en présentation |
+| `²taille-presentation` | `#taille-presentation(0.92em)[…]` |
+| `²question` | Question et solution dans `contenu: (…)` |
+| `²question-bareme` | Question avec points et étiquette |
+| `²nouvelle-diapositive` | `#nouvelle-diapositive()` : conserve le titre, sans saut dans le cours |
+| `²slides-only` | Contenu réservé aux diapositives |
+| `²article-only` | Contenu réservé au cours A4 |
+| `²exercice-banque` | Fichier d'exercice réutilisable exportant `ex` |
 
-Dans `!lien`, choisir une ressource dans les suggestions (identifiant, titre et type), puis utiliser Tab pour saisir le texte du lien. Ctrl+Espace rouvre les suggestions dans les guillemets d’un appel à `lien`. Importer `lien` depuis `/load.typ`.
+Dans `²lien`, choisir une ressource dans les suggestions (identifiant, titre et type), puis utiliser Tab pour saisir le texte du lien. Ctrl+Espace rouvre les suggestions dans les guillemets d’un appel à `lien`. Importer `lien` depuis `/load.typ`.
 
 Ces blocs utilisent les fonctions de la bibliothèque MPI, à importer comme dans les modèles de `templates/`. Les environnements encadrés utilisent les fonctions françaises de `theoremes` et le paramètre `titre:` ; `solution`, `slides-only`, `article-only`, `nouvelle-diapositive`, `colonnes-cours`, `liste-cours` et `taille-presentation` viennent de `/load.typ`. Les questions s'utilisent en mode code dans le tuple `contenu` et incluent leur virgule finale. **F4** conserve la création guidée avec les métadonnées du dépôt.
 

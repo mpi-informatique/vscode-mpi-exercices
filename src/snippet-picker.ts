@@ -19,8 +19,8 @@ export function registerSnippetPicker(snippets: Record<string, Snippet>): vscode
       title: 'Snippets MPI', placeHolder: 'Choisir un snippet — saisir son nom ou son préfixe',
       matchOnDescription: true, matchOnDetail: true
     }, token);
-    if (!choice || token.isCancellationRequested || editor.document.isClosed || editor.document.version !== version || editor.document.getText(range) !== '!') return;
-    // Le ! est un préfixe à remplacer, pas du texte sélectionné à insérer dans le premier champ.
+    if (!choice || token.isCancellationRequested || editor.document.isClosed || editor.document.version !== version || editor.document.getText(range) !== '²') return;
+    // Le ² est un préfixe à remplacer, pas du texte sélectionné à insérer dans le premier champ.
     const body = choice.body.replace(/\$\{TM_SELECTED_TEXT\}|\$TM_SELECTED_TEXT\b/g, '');
     await editor.insertSnippet(new vscode.SnippetString(body), range);
   }
@@ -29,7 +29,7 @@ export function registerSnippetPicker(snippets: Record<string, Snippet>): vscode
     const editor = vscode.window.activeTextEditor;
     if (pending || !editor || editor.document !== event.document || event.document.languageId !== 'typst' || event.reason !== undefined || editor.selections.length !== 1 || event.contentChanges.length !== 1) return;
     const change = event.contentChanges[0];
-    if (change.text !== '!' || change.rangeLength !== 0) return;
+    if (change.text !== '²' || change.rangeLength !== 0) return;
     const range = new vscode.Range(change.range.start, change.range.start.translate(0, 1));
     const cancellation = new vscode.CancellationTokenSource();
     pending = cancellation;
