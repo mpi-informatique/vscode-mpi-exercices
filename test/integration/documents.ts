@@ -33,10 +33,10 @@ for variant in ('enonce', 'corrige'):
     output.parent.mkdir(parents=True, exist_ok=True)
     subprocess.run(['typst', 'compile', '--root', '.', '--input', 'corrige=' + str(variant == 'corrige').lower(), str(source), str(output)], check=True)
 `);
-    for (const type of ['poly', 'presentation']) {
+    for (const type of ['cours', 'poly', 'presentation']) {
       const template = `#import "/lib/cours.typ": cours
 #show: cours.with(
-  type: "${type}",
+  ${type === 'cours' ? '' : `type: "${type}",`}
   titre: "Support de cours",
 )
 #include "contenu.typ"
@@ -50,8 +50,8 @@ for variant in ('enonce', 'corrige'):
       try { return (await api.revealSheet('chapitres/automates/poly.typ')).bank.root === temporary; }
       catch { return false; }
     }, 'Un dépôt de cours sans bibliothèque d\'exercices est découvert');
-    assert.deepEqual((await documentTemplates(project)).map(template => template.type).sort(), ['poly', 'presentation']);
-    for (const type of ['poly', 'presentation']) {
+    assert.deepEqual((await documentTemplates(project)).map(template => template.type).sort(), ['cours', 'poly', 'presentation']);
+    for (const type of ['cours', 'poly', 'presentation']) {
       const source = `chapitres/automates/${type}.typ`;
       const document = await api.revealSheet(source);
       assert.equal(document.documentType, type);

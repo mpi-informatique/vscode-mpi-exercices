@@ -24,7 +24,7 @@ Le dépôt privé peut relier son package directement au clone public local. Dan
 - **Exercices** : exercices réutilisables de la banque, avec recherche et filtres de métadonnées.
 - **Documents** : TD, devoirs, concours, copies et types personnalisés, avec recherche et filtre par type.
 
-Les contenus sont reconnus d'après leur code, indépendamment du dossier : export `ex` pour un exercice, `feuille.with(type: "…", ...)` pour un document. Les fonctions de mise en page personnalisées déclarant un `type` sont aussi reconnues. Les dossiers techniques et `build/` sont exclus.
+Les contenus sont reconnus d'après leur code, indépendamment du dossier : export `ex` pour un exercice, `feuille.with(type: "…", ...)` pour un document, `cours.with(...)` pour un cours A4 et `cours-et-presentation.with(...)` pour un cours avec présentation. Les fonctions de mise en page personnalisées déclarant un `type` sont aussi reconnues. Les dossiers techniques et `build/` sont exclus.
 
 Les exercices autonomes sont dans `chapitres/<chapitre>/exercices/`, les feuilles, cours et présentations dans `chapitres/<chapitre>/`, et les sujets de concours dans `devoirs/concours/`. Le privé ajoute `corrections/<annee>/ds/<devoir>/copies/`.
 

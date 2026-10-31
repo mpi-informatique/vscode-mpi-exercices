@@ -15,6 +15,7 @@ export function identify(text: string, source = ''): SourceKind | undefined {
     while (end < code.length && depth) { if (code[end] === '(') depth++; if (code[end] === ')') depth--; end++; }
     const body = mask(text, false).slice(start, end - 1);
     const type = /\btype\s*:\s*"([^"\n]+)"/.exec(body)?.[1];
+    if (show[1] === 'cours') return { kind: 'document', type: type ?? 'cours', direct: true };
     if (show[1] === 'feuille' || type) return { kind: 'document', type: type ?? 'td', direct: true };
   }
   const reexports = [...code.matchAll(/#import\s+:\s*([^\n]+)/g)].some(match => match[1].split(',').some(member => /^(?:ex|[\w-]+\s+as\s+ex)$/.test(member.trim())));

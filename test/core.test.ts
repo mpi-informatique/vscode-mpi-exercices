@@ -158,6 +158,15 @@ test('documents : polys et présentations avec leur propre fonction de mise en p
   assert.throws(() => sheetList(poly, 'poly.typ'));
 });
 
+test('cours A4 : le type implicite permet la compilation et les variantes', () => {
+  const text = '#show: cours.with(titre: "Déduction naturelle", niveau: "MPI")';
+  const kind = identify(text, 'todo/cours-deduction-naturelle/cours-deduction-naturelle.typ');
+  assert.deepEqual(kind, { kind: 'document', type: 'cours', direct: true });
+  assert.equal(sourceMetadata(text, 'cours-deduction-naturelle.typ').titre, 'Déduction naturelle');
+  assert.deepEqual(variantLabels(kind?.type), { enonce: 'Cours', corrige: 'Cours corrigé', presentation: '' });
+  for (const masked of ['// ' + text, '/* ' + text + ' */', '`' + text + '`', '#let texte = "#show: cours.with()"']) assert.equal(identify(masked), undefined);
+});
+
 test('cours et présentation : reconnaissance, paramètres et sorties distinctes', () => {
   const source = 'chapitres/automates/support.typ';
   const text = '#show: cours-et-presentation.with(titre: "Automates")';
