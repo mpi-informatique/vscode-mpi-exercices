@@ -1,4 +1,9 @@
 {
+  "MPI — Commentaire d'algorithme": {
+    "prefix": "²commentaire",
+    "body": "#commentaire[${1:${TM_SELECTED_TEXT}}]$0",
+    "description": "Commentaire visible en gris précédé de // ; importer commentaire depuis theoremes"
+  },
   "MPI — Substitution": {
     "prefix": "²substituer",
     "body": "substituer(${1:φ}, ${2:x}, ${3:ψ})$0",
