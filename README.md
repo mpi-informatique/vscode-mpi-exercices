@@ -64,6 +64,7 @@ Par exemple, `²exercice-titre` insère `#exercice(titre: [Titre])[…]`. Le tit
 | Autre préfixe | Contenu inséré |
 | --- | --- |
 | `²lien` | `#lien("…")[…]` avec autocomplétion des ressources publiques |
+| `²substituer` | `substituer(φ, x, ψ)` en mode mathématique : $φ[x ← ψ]$ ; importer `substituer` depuis `/load.typ` |
 | `²solution` | Solution de cours |
 | `²exsol` | Exercice de cours suivi de sa solution |
 | `²solpause` | Solution avec `#pause` |

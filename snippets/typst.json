@@ -1,4 +1,9 @@
 {
+  "MPI — Substitution": {
+    "prefix": "²substituer",
+    "body": "substituer(${1:φ}, ${2:x}, ${3:ψ})$0",
+    "description": "Substitution φ[x ← ψ] en mode mathématique ; importer substituer depuis /load.typ"
+  },
   "MPI — Lien vers une ressource": {
     "prefix": "²lien",
     "body": "#lien(\"${1}\")[${2:${TM_SELECTED_TEXT}}]$0",
