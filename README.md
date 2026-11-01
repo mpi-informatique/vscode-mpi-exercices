@@ -71,7 +71,7 @@ Par exemple, `²exercice-titre` insère `#exercice(titre: [Titre])[…]`. Le tit
 | `²exemple` | `#underline[Exemple] : ` |
 | `²attention` | `#underline[Attention] : ` |
 | `²colonnes-cours` | Deux colonnes dans le cours, contenus à la suite en présentation |
-| `²formules-reparties` | Formules centrées en i/(n+1), avec l’option `empiler-presentation` |
+| `²formules-reparties` | Espaces égaux entre les formules et aux extrémités, avec l’option `empiler-presentation` |
 | `²liste-cours` | Liste numérotée en colonnes de même largeur dans le cours, continue en présentation |
 | `²taille-presentation` | `#taille-presentation(0.92em)[…]` |
 | `²question` | Question et solution dans `contenu: (…)` |

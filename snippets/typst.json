@@ -345,7 +345,7 @@
       ")",
       "$0"
     ],
-    "description": "Formules centrées en i/(n+1), avec empilement facultatif en présentation (bibliothèque MPI)"
+    "description": "Formules séparées par des espaces égaux, y compris aux extrémités, avec empilement facultatif en présentation (bibliothèque MPI)"
   },
   "MPI — Liste du cours": {
     "prefix": "²liste-cours",
