@@ -335,6 +335,18 @@
     ],
     "description": "Deux colonnes dans le cours, contenus à la suite dans la présentation (bibliothèque MPI)"
   },
+  "MPI — Formules réparties": {
+    "prefix": "²formules-reparties",
+    "body": [
+      "#formules-reparties(",
+      "  empiler-presentation: ${3|false,true|},",
+      "  \\$${1:${TM_SELECTED_TEXT}}\\$,",
+      "  \\$${2}\\$,",
+      ")",
+      "$0"
+    ],
+    "description": "Formules centrées en i/(n+1), avec empilement facultatif en présentation (bibliothèque MPI)"
+  },
   "MPI — Liste du cours": {
     "prefix": "²liste-cours",
     "body": [
@@ -351,6 +363,11 @@
     "prefix": "²taille-presentation",
     "body": "#taille-presentation(${1:0.92em})[${2:${TM_SELECTED_TEXT}}]$0",
     "description": "Taille du texte modifiée uniquement en présentation ; taille normale dans le cours et le corrigé"
+  },
+  "MPI — Saut de page du cours": {
+    "prefix": "²saut-page-cours",
+    "body": "#saut-page-cours()$0",
+    "description": "Saut de page uniquement dans le cours non corrigé, sans effet dans le corrigé et la présentation (bibliothèque MPI)"
   },
   "MPI — Nouvelle diapositive": {
     "prefix": "²nouvelle-diapositive",

@@ -82,6 +82,19 @@ export async function run(_api: unknown, extension: vscode.Extension<unknown>): 
     assert.equal(editor.selection.active.line, 5, 'Tab quitte la liste');
 
     await vscode.commands.executeCommand('leaveSnippet');
+    await editor.edit(edit => edit.replace(new vscode.Range(document.positionAt(0), document.positionAt(document.getText().length)), 'p → q'));
+    editor.selection = new vscode.Selection(document.positionAt(0), document.positionAt(document.getText().length));
+    await vscode.commands.executeCommand('editor.action.insertSnippet', { langId: 'typst', name: 'MPI — Formules réparties' });
+    assert.equal(document.getText(), '#formules-reparties(\n  empiler-presentation: false,\n  $p → q$,\n  $$,\n)\n');
+    assert.equal(document.getText(editor.selection), 'p → q', 'La sélection remplit la première formule, entre des dollars littéraux');
+    await vscode.commands.executeCommand('jumpToNextSnippetPlaceholder');
+    assert.equal(editor.selection.active.line, 3, 'Tab rejoint la seconde formule');
+    await vscode.commands.executeCommand('jumpToNextSnippetPlaceholder');
+    assert.equal(document.getText(editor.selection), 'false', 'Tab rejoint le choix du mode de présentation');
+    await vscode.commands.executeCommand('jumpToNextSnippetPlaceholder');
+    assert.equal(editor.selection.active.line, 5, 'Tab quitte les formules');
+
+    await vscode.commands.executeCommand('leaveSnippet');
     await editor.edit(edit => edit.replace(new vscode.Range(document.positionAt(0), document.positionAt(document.getText().length)), ''));
     editor.selection = new vscode.Selection(0, 0, 0, 0);
     await vscode.commands.executeCommand('default:type', { text: '²' });

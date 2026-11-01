@@ -71,10 +71,12 @@ Par exemple, `²exercice-titre` insère `#exercice(titre: [Titre])[…]`. Le tit
 | `²exemple` | `#underline[Exemple] : ` |
 | `²attention` | `#underline[Attention] : ` |
 | `²colonnes-cours` | Deux colonnes dans le cours, contenus à la suite en présentation |
+| `²formules-reparties` | Formules centrées en i/(n+1), avec l’option `empiler-presentation` |
 | `²liste-cours` | Liste numérotée en colonnes de même largeur dans le cours, continue en présentation |
 | `²taille-presentation` | `#taille-presentation(0.92em)[…]` |
 | `²question` | Question et solution dans `contenu: (…)` |
 | `²question-bareme` | Question avec points et étiquette |
+| `²saut-page-cours` | `#saut-page-cours()` : saut de page uniquement dans le cours non corrigé |
 | `²nouvelle-diapositive` | `#nouvelle-diapositive()` : conserve le titre, sans saut dans le cours |
 | `²slides-only` | Contenu réservé aux diapositives |
 | `²article-only` | Contenu réservé au cours A4 |
@@ -82,7 +84,7 @@ Par exemple, `²exercice-titre` insère `#exercice(titre: [Titre])[…]`. Le tit
 
 Dans `²lien`, choisir une ressource dans les suggestions (identifiant, titre et type), puis utiliser Tab pour saisir le texte du lien. Ctrl+Espace rouvre les suggestions dans les guillemets d’un appel à `lien`. Importer `lien` depuis `/load.typ`.
 
-Ces blocs utilisent les fonctions de la bibliothèque MPI, à importer comme dans les modèles de `templates/`. Les environnements encadrés utilisent les fonctions françaises de `theoremes` et le paramètre `titre:` ; `solution`, `slides-only`, `article-only`, `nouvelle-diapositive`, `colonnes-cours`, `liste-cours` et `taille-presentation` viennent de `/load.typ`. Les questions s'utilisent en mode code dans le tuple `contenu` et incluent leur virgule finale. **F4** conserve la création guidée avec les métadonnées du dépôt.
+Ces blocs utilisent les fonctions de la bibliothèque MPI, à importer comme dans les modèles de `templates/`. Les environnements encadrés utilisent les fonctions françaises de `theoremes` et le paramètre `titre:` ; `solution`, `saut-page-cours`, `slides-only`, `article-only`, `nouvelle-diapositive`, `colonnes-cours`, `formules-reparties`, `liste-cours` et `taille-presentation` viennent de `/load.typ`. Les questions s'utilisent en mode code dans le tuple `contenu` et incluent leur virgule finale. **F4** conserve la création guidée avec les métadonnées du dépôt.
 
 Pour développer directement un préfixe avec Tab, activer facultativement `"editor.tabCompletion": "onlySnippets"` dans les réglages VS Code.
 
