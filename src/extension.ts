@@ -232,6 +232,11 @@ export async function activate(context: vscode.ExtensionContext) {
   async function exportPdf(preview: Source, variant: Variant): Promise<void> {
     const destination = await vscode.window.showSaveDialog({ defaultUri: vscode.Uri.file(path.join(preview.bank.root, pdfFilename(preview.source, variant, preview.documentType))), filters: { PDF: ['pdf'] } });
     if (!destination) return;
+    const session = previews.entries.get(`${preview.bank.root}/${preview.source}`)?.sessions.get(variant);
+    if (session) {
+      await vscode.workspace.fs.writeFile(destination, await session.exportPdf());
+      return;
+    }
     const target = pdfTarget(preview.source, variant, preview.documentType === 'copie', preview.documentType);
     await compile(preview);
     const from = vscode.Uri.file(path.join(preview.bank.root, target));

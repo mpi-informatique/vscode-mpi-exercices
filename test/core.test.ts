@@ -358,6 +358,8 @@ test('lecteur : raccourcis de variantes et début/fin depuis le PDF, la barre et
   });
   elements.get('presentation').onclick();
   assert.equal(messages.at(-1).type, 'presentation', 'La troisième variante est sélectionnable');
+  elements.get('save').onclick();
+  assert.equal(messages.at(-1).type, 'save', 'Le bouton d’export transmet la demande à l’extension');
   const dispatch = (type: string, event: any) => listeners.get(type)?.forEach(listener => listener(event));
   for (const [key, variant] of [['F5', 'enonce'], ['F6', 'corrige'], ['F7', 'presentation']]) {
     for (const input of [false, true]) {

@@ -1,11 +1,11 @@
 import * as vscode from 'vscode';
 import * as path from 'node:path';
-import { writeFile, rm } from 'node:fs/promises';
+import { readFile, writeFile, rm } from 'node:fs/promises';
 import assert from 'node:assert/strict';
 import { environment } from '../../src/environment';
 import { Previews } from '../../src/preview';
 import * as tinymist from '../../src/tinymist';
-import { fixture, until } from './helpers';
+import { fixture, pdfText, until } from './helpers';
 
 export async function run(_api: unknown, extension: vscode.Extension<unknown>): Promise<void> {
   const { temporary, previewBank, relative, generated, file } = await fixture();
@@ -73,10 +73,23 @@ export async function run(_api: unknown, extension: vscode.Extension<unknown>): 
     catch (error) { console.error('Plan reçu', outline); throw error; }
     assert.ok(!vscode.languages.getDiagnostics(vscode.Uri.file(unused)).length, 'Un document propre ouvert par le catalogue ne doit pas être compilé par le moteur isolé');
 
+    const exported = await enonce.exportPdf();
+    assert.equal(Buffer.from(exported).subarray(0, 5).toString(), '%PDF-');
+    assert.ok(exported.length > 1000, 'La session exporte le PDF de l’exercice avec son enveloppe');
+    const exportedText = await pdfText(exported);
+    assert.match(exportedText, /Repère non enregistré/, 'Le PDF contient la version non enregistrée de l’import');
+    assert.doesNotMatch(exportedText, /Version sur disque|Repère du corrigé/);
+    assert.equal(dependency.isDirty, true, 'L’export ne force pas l’enregistrement des imports');
+    assert.equal(await readFile(fragment, 'utf8'), '#let content = [Version sur disque.]', 'Le fichier sur disque reste intact');
+    await assert.rejects(readFile(path.join(temporary, 'templates/fiche.pdf')), 'L’export en mémoire ne produit pas de PDF à côté de l’enveloppe');
+
     const other = performance.now();
     await preview.select('corrige');
     console.log('Premier changement de variante (ms)', Math.round(performance.now() - other));
     const corrige = preview.sessions.get('corrige')!;
+    const correctedPdf = await corrige.exportPdf();
+    assert.equal(Buffer.from(correctedPdf).subarray(0, 5).toString(), '%PDF-');
+    assert.match(await pdfText(correctedPdf), /Repère du corrigé/, 'L’export utilise les paramètres de la variante demandée');
     assert.ok(preparedIds.has(corrige.id), 'F6 récupère l’autre session préparée');
     assert.equal(started.length, 2, 'F5 et F6 ne démarrent aucun moteur supplémentaire');
     const again = performance.now();

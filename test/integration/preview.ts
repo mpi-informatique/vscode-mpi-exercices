@@ -6,7 +6,7 @@ import { Previews } from '../../src/preview';
 import { Runner } from '../../src/runner';
 import { errorStatus } from '../../src/errors';
 import { forward } from '../../src/tinymist';
-import { fixture, until } from './helpers';
+import { fixture, pdfText, until } from './helpers';
 export async function run(api: any, extension: vscode.Extension<any>): Promise<void> {
   const { temporary, previewBank, relative, generated, file } = await fixture();
   const previews = new Previews({ extensionUri: extension.extensionUri } as vscode.ExtensionContext, async () => undefined);
@@ -98,10 +98,12 @@ export async function run(api: any, extension: vscode.Extension<any>): Promise<v
     await new Promise(resolve => setTimeout(resolve, 300));
     assert.ok(!compilationMessages.some(Boolean), 'Pas de bandeau pendant la saisie');
     await until(() => compilationMessages.some(Boolean), 'Erreur de compilation transmise au bandeau PDF');
+    await assert.rejects(enonce.exportPdf(), 'Un document invalide ne doit pas exporter un ancien rendu');
     const repair = new vscode.WorkspaceEdit();
     repair.delete(editor.document.uri, new vscode.Range(editor.document.positionAt(validText.length), editor.document.positionAt(editor.document.getText().length)));
     await vscode.workspace.applyEdit(repair);
     await until(() => compilationMessages.at(-1) === '', 'Bandeau effacé après correction');
+    assert.ok((await enonce.exportPdf()).length > 1000, 'L’export fonctionne après correction sans enregistrer la source');
     preview.panel.webview.postMessage = originalPost;
     await assert.rejects(stat(path.join(temporary, 'build')), 'Aucun export PDF pour afficher ou basculer');
     await editor.document.save();
@@ -163,7 +165,7 @@ Une indication réservée à la présentation.]
 #solution[== Réponse réservée
 Une solution de l'exercice.]
 #solution(presentation: true)[== Réponse projetée
-Une solution affichée aussi dans la présentation.]
+Une solution réservée à la présentation.]
 `);
     const courseEditor = await vscode.window.showTextDocument(courseUri, { viewColumn: vscode.ViewColumn.One });
     const coursePreview = await previews.open(previewBank, courseSource, 'enonce');
@@ -188,7 +190,10 @@ Une solution affichée aussi dans la présentation.]
       await until(() => JSON.stringify(renderedOutline)?.includes(marker) ?? false, `${format} : contenu propre au format affiché`);
       assert.ok(!JSON.stringify(renderedOutline).includes(excluded), `${format} : contenu de l'autre format absent`);
       assert.equal(JSON.stringify(renderedOutline).includes('Réponse réservée'), variant === 'corrige', 'La solution est réservée au cours corrigé par défaut');
-      assert.equal(JSON.stringify(renderedOutline).includes('Réponse projetée'), variant !== 'enonce', 'Une solution peut être explicitement activée dans la présentation');
+      assert.equal(JSON.stringify(renderedOutline).includes('Réponse projetée'), variant === 'presentation', 'Une solution explicitement projetée reste réservée à la présentation');
+      const exportedText = await pdfText(await coursePreview.sessions.get(variant)!.exportPdf());
+      assert.ok(exportedText.includes(marker) && !exportedText.includes(excluded), 'Le PDF exporté correspond au format affiché');
+      assert.equal(exportedText.includes('Réponse réservée'), variant === 'corrige', 'Le PDF respecte la variante de corrigé');
       if (variant === 'presentation') {
         await until(() => courseProgress.some(progress => progress.total > 1), 'Nombre total de diapositives affiché');
       }

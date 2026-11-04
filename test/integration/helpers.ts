@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as path from 'node:path';
 import { mkdtemp, mkdir, writeFile, rm, cp, readFile, realpath } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
+import { pathToFileURL } from 'node:url';
 import assert from 'node:assert/strict';
 import { exerciseFromTemplate } from '../../src/typst';
 import { documentTemplates } from '../../src/authoring';
@@ -30,4 +31,19 @@ export async function until(condition: () => boolean | Promise<boolean>, message
   const deadline = Date.now() + 20_000;
   while (Date.now() < deadline) { if (await condition()) return; await new Promise(resolve => setTimeout(resolve, 100)); }
   throw new Error(message);
+}
+
+export async function pdfText(data: Uint8Array): Promise<string> {
+  const { getDocument, GlobalWorkerOptions } = await import(pathToFileURL(require.resolve('pdfjs-dist/legacy/build/pdf.mjs')).href);
+  GlobalWorkerOptions.workerSrc = pathToFileURL(require.resolve('pdfjs-dist/legacy/build/pdf.worker.mjs')).href;
+  const loading = getDocument({ data: Uint8Array.from(data) });
+  const pdf = await loading.promise;
+  try {
+    const pages: string[] = [];
+    for (let n = 1; n <= pdf.numPages; n++) {
+      const { items } = await (await pdf.getPage(n)).getTextContent();
+      pages.push(items.map((item: { str?: string }) => item.str ?? '').join(' '));
+    }
+    return pages.join('\n');
+  } finally { await loading.destroy(); }
 }

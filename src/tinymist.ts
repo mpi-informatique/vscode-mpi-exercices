@@ -13,7 +13,7 @@ import { copyInputs } from './copy-inputs';
 import { environment } from './environment';
 
 export interface SessionOptions { signal?: AbortSignal; dark?: boolean; background?: boolean; canJump?: () => boolean; onError?: (message: string) => void }
-export interface Session { id: string; url: string; port: number; connection: MessageConnection; readonly alive: boolean; attach(options: SessionOptions): void; dispose(): void }
+export interface Session { id: string; url: string; port: number; connection: MessageConnection; readonly alive: boolean; exportPdf(): Promise<Uint8Array>; attach(options: SessionOptions): void; dispose(): void }
 
 // Tinymist's shared LSP ignores per-preview root/inputs. An isolated LSP
 // context reuses its installed engine without changing the user's settings.
@@ -135,6 +135,16 @@ export async function start(bank: Bank, source: string, variant: Variant, option
     const uri = await vscode.env.asExternalUri(vscode.Uri.parse(page.url));
     options.signal?.throwIfAborted();
     return { id, port, url: uri.toString(), connection, get alive() { return alive; }, dispose,
+      async exportPdf() {
+        // Export the session's entry (the wrapper for an exercise), with its inputs and unsaved buffers.
+        const result = await connection.sendRequest<{ data?: string } | null>('workspace/executeCommand', {
+          command: 'tinymist.exportPdf', arguments: [args.at(-1)!, {}, { write: false, open: false }]
+        });
+        if (!result?.data) throw new Error('Export PDF impossible. Vérifiez les erreurs de compilation de l’aperçu.');
+        const data = Buffer.from(result.data, 'base64');
+        if (data.subarray(0, 5).toString() !== '%PDF-') throw new Error('Tinymist n’a pas renvoyé de PDF valide.');
+        return data;
+      },
       attach(next) {
         options.signal?.removeEventListener('abort', dispose);
         options = next;

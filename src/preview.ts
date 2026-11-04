@@ -193,7 +193,11 @@ export class Previews implements vscode.Disposable {
         else if (message?.type === 'fullscreen') await vscode.commands.executeCommand('workbench.action.toggleZenMode');
         else if (message?.type === 'restart') await preview.restart();
         else if (message?.type === 'sync') await this.sync();
-        else if (message?.type === 'save') await this.exportPdf(preview, preview.variant);
+        else if (message?.type === 'save') {
+          await this.exportPdf(preview, preview.variant);
+          errorStatus.clear('preview');
+          await describe();
+        }
         else if (message?.type === 'code') await openAssociatedCode({ bank, source });
       } catch (error) { if (!disposed) { this.report(error); await post({ type: 'status', message: String(error) }); } }
     });
