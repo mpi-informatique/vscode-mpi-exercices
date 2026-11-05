@@ -11,6 +11,7 @@ Télécharger [Exercices MPI — dernière release stable](https://github.com/mp
 Pour une mise à jour locale, télécharger à nouveau le VSIX et le réinstaller. Dans le Codespace de `tp-environnement`, TP MPI est actualisée automatiquement à chaque connexion.
 
 Ouvrir ensuite le dépôt public ou privé, ou leur dossier parent : les dépôts enfants immédiats sont détectés automatiquement. Pour les consulter ensemble, ouvrir `exercices-prive/exercices.code-workspace`.
+Un dossier d'espace de travail indisponible ne bloque pas les autres banques ; son absence est signalée dans **Affichage → Sortie → Exercices MPI**.
 
 L'identifiant est `qfortier.vscode-mpi-exercices`, les réglages utilisent `mpiExercices.*`. Désactiver l'ancienne extension Enseignement Typst (`qfortier.vscode-enseignement`) dans cet espace de travail pour éviter les raccourcis en double. Les anciens réglages et raccourcis personnalisés doivent utiliser le préfixe `mpiExercices.*` ; `makePath` devient `pythonPath`.
 

@@ -73,6 +73,7 @@ async function contentNotifications(): Promise<void> {
 async function parentWorkspace(api: any): Promise<void> {
   const parent = await realpath(await mkdtemp(path.join(tmpdir(), 'exercices-parent-')));
   const roots = ['exercices', 'exercices-prive'].map(name => path.join(parent, name));
+  const missing = path.join(parent, 'disque-indisponible');
   const entries = () => api.getEntries().filter((entry: { bank: string }) => roots.includes(entry.bank));
   try {
     for (const root of roots) {
@@ -90,8 +91,12 @@ async function parentWorkspace(api: any): Promise<void> {
     // The refresh command waits for the queued workspace discovery.
     await vscode.commands.executeCommand('mpiExercices.refresh');
     assert.equal(entries().length, 2, 'Un dépôt ouvert aussi directement ne doit pas apparaître deux fois');
+    assert.ok(vscode.workspace.updateWorkspaceFolders(vscode.workspace.workspaceFolders!.length, 0, { uri: vscode.Uri.file(missing) }));
+    await until(() => !!vscode.workspace.workspaceFolders?.some(folder => folder.uri.fsPath === missing), 'Le dossier indisponible doit être ajouté');
+    await vscode.commands.executeCommand('mpiExercices.refresh');
+    assert.equal(entries().length, 2, 'Un dossier indisponible ne doit pas bloquer les banques accessibles');
   } finally {
-    for (const root of [roots[0], parent]) {
+    for (const root of [missing, roots[0], parent]) {
       const index = vscode.workspace.workspaceFolders?.findIndex(folder => folder.uri.fsPath === root) ?? -1;
       if (index >= 0) {
         vscode.workspace.updateWorkspaceFolders(index, 1);

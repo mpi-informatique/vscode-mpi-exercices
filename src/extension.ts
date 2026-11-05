@@ -135,7 +135,15 @@ export async function activate(context: vscode.ExtensionContext) {
     for (const folder of vscode.workspace.workspaceFolders ?? []) {
       if (folder.uri.scheme !== 'file') continue;
       const configured = vscode.workspace.getConfiguration('mpiExercices', folder.uri).get<string>('bankPath', '');
-      for (const candidate of await bankCandidates(folder.uri.fsPath, configured)) {
+      let candidates: string[];
+      try {
+        candidates = await bankCandidates(folder.uri.fsPath, configured);
+      } catch (error) {
+        if (!(error instanceof Error && 'code' in error && error.code === 'ENOENT')) throw error;
+        runner.output.appendLine(`Dossier d’espace de travail indisponible [${folder.uri.fsPath}] : ${error.message}`);
+        continue;
+      }
+      for (const candidate of candidates) {
         const project = { root: candidate, name: path.basename(candidate), scope: folder.uri };
         if (!hasCatalogue(project) && !(await documentTemplates(project)).length) continue;
         const root = await realpath(candidate);
