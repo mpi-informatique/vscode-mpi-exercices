@@ -10,7 +10,7 @@ export class Refresh {
   private running = false;
   private disposed = false;
   private timer: ReturnType<typeof setInterval>;
-  constructor(private rebuild: () => Promise<void>, private report: (error: unknown) => void, interval = 5000) {
+  constructor(private rebuild: () => Promise<void>, private report: (error: unknown) => void, interval = 30000) {
     this.timer = setInterval(() => { void this.flush(); }, interval);
   }
   mark(): void { if (!this.disposed) this.dirty = true; }
