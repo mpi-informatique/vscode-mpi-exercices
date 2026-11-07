@@ -543,6 +543,21 @@ test('parties imbriquées : les questions suivantes ne restent pas dans une part
   assert.equal(items[0].children?.[1].title, '2. Beta');
   assert.equal(items[1].title, '3. Gamma');
 });
+test('rédaction en blocs : parties automatiques, deux blocs par question et création depuis le modèle', () => {
+  const body = '#partie("Parent")[\n#partie("Enfant")[#question(bareme: 1)[Alpha $x^2$ et $[0, +infinity[$.][Solution.]]\n#question[Beta]\n]\n#partie("Reprise", numero: "III")[#question[Gamma][Réponse.]]';
+  const items = outline(body);
+  assert.equal(items[0].title, 'I — Parent');
+  assert.equal(items[0].children?.[0].title, 'I.A — Enfant');
+  assert.equal(items[0].children?.[0].children?.[0].title.startsWith('1. Alpha'), true);
+  assert.equal(items[0].children?.[1].title, '2. Beta');
+  assert.equal(items[1].title, 'III — Reprise');
+  assert.equal(items[1].children?.[0].title, '3. Gamma');
+  const template = '#let ex = exercice(meta: (\n titre: "Titre",\n chapitres: (),\n niveaux: (),\n difficulte: 1,\n duree: none,\n))[\n' + body + '\n]';
+  const created = exerciseFromTemplate(template, { title: 'Nouveau', chapters: ['graphes'], algorithms: [], structures: [], languages: ['OCaml'], levels: ['MPI'], difficulty: 2, minutes: 20 });
+  assert.ok(created.includes('#question[Énoncé à compléter.]'));
+  assert.equal(outline(created).filter(item => item.kind === 'question').length, 1);
+  assert.ok(!created.includes('Alpha'));
+});
 test('arborescence : dossiers imbriqués et fichiers de même nom dans des dossiers différents', () => {
   const files = ['b/test.typ', 'a/nested/test.typ', 'a/test.typ', 'root.typ'];
   const tree = hierarchy(files, value => value);

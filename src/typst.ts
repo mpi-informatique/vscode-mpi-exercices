@@ -44,27 +44,65 @@ export function mask(text: string, strings = true, raw = true): string {
 }
 
 export interface OutlineItem { title: string; line: number; kind: 'question' | 'partie' | 'meta' | 'import'; children?: OutlineItem[] }
+function closing(code: string, start: number): number {
+  const open = code[start]; const close = ({ '(': ')', '[': ']', '{': '}' } as Record<string, string>)[open];
+  let depth = 1;
+  for (let i = start + 1; i < code.length; i++) {
+    if (code[i - 1] === '\\') continue;
+    if (open !== '[' && code[i] === '[') { i = closing(code, i) - 1; continue; }
+    if (code[i] === open) depth++;
+    if (code[i] === close && --depth === 0) return i + 1;
+  }
+  return code.length;
+}
+function callBody(code: string, start: number): { body: number; end: number } {
+  let cursor = start;
+  while (/\s/.test(code[cursor] ?? '') && cursor < code.length) cursor++;
+  if (code[cursor] === '(') cursor = closing(code, cursor);
+  while (/\s/.test(code[cursor] ?? '') && cursor < code.length) cursor++;
+  return { body: code[cursor] === '[' ? cursor : -1, end: code[cursor] === '[' ? closing(code, cursor) : cursor };
+}
+const structuralCode = (text: string) => mask(text).replace(/(?<!\\)\$(?:\\.|[^$])*\$/g, math => math.replace(/[^\n]/g, ' '));
+function alphabetic(value: number): string {
+  let result = '';
+  while (value > 0) { value--; result = String.fromCharCode(65 + value % 26) + result; value = Math.floor(value / 26); }
+  return result;
+}
+function roman(value: number): string {
+  let result = '';
+  for (const [amount, numeral] of [[1000, 'M'], [900, 'CM'], [500, 'D'], [400, 'CD'], [100, 'C'], [90, 'XC'], [50, 'L'], [40, 'XL'], [10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I']] as const) {
+    while (value >= amount) { result += numeral; value -= amount; }
+  }
+  return result;
+}
 export function outline(text: string): OutlineItem[] {
-  const code = mask(text);
+  const code = structuralCode(text);
   const items: OutlineItem[] = [];
   let number = Number(/\bdebut\s*:\s*(\d+)/.exec(code)?.[1] ?? 1);
   const lineAt = (offset: number) => text.slice(0, offset).split('\n').length - 1;
-  const parents: { end: number; children: OutlineItem[] }[] = [];
-  for (const match of code.matchAll(/\b(question|partie)\s*\(/g)) {
+  const parents: { end: number; children: OutlineItem[]; number: string; parts: number }[] = [];
+  let rootParts = 0;
+  for (const match of code.matchAll(/\b(question|partie)(?=\s*[([])/g)) {
     while (parents.length && parents.at(-1)!.end <= match.index!) parents.pop();
     const children = parents.at(-1)?.children ?? items;
-    const tail = text.slice(match.index! + match[0].length);
+    const start = match.index! + match[0].length;
+    const call = callBody(code, start);
+    const tail = text.slice(start).trimStart().slice(1);
     if (match[1] === 'question') {
-      const body = /^\s*(?:points:\s*(?:\d+(?:\.\d+)?|none)\s*,\s*)?(?:enonce:\s*)?\[([^\]]*)/.exec(tail)?.[1] ?? '';
+      const body = call.body >= 0 ? text.slice(call.body + 1, closing(code, call.body) - 1) : /^\s*(?:points:\s*(?:\d+(?:\.\d+)?|none)\s*,\s*)?(?:enonce:\s*)?\[([^\]]*)/.exec(tail)?.[1] ?? '';
       const title = body.replace(/[\n\r]+/g, ' ').replace(/[#\[\]$]/g, '').trim().slice(0, 95);
       children.push({ title: `${number++}. ${title || 'Question'}`, line: lineAt(match.index!), kind: 'question' });
     } else {
-      const args = /^\s*"((?:\\.|[^"\\])*)"\s*,\s*"((?:\\.|[^"\\])*)"/.exec(tail);
-      const item: OutlineItem = { title: args ? `${args[1]} — ${args[2]}` : 'Partie', line: lineAt(match.index!), kind: 'partie', children: [] };
+      const args = /^\s*"((?:\\.|[^"\\])*)"(?:\s*,\s*"((?:\\.|[^"\\])*)")?/.exec(tail);
+      const parent = parents.at(-1);
+      const index = parent ? ++parent.parts : ++rootParts;
+      const automatic = parent ? parent.number + '.' + (parents.length === 1 ? alphabetic(index) : index) : roman(index);
+      const explicit = /\bnumero\s*:\s*"((?:\\.|[^"\\])*)"/.exec(text.slice(start, call.body >= 0 ? call.body : call.end))?.[1];
+      const number = args?.[2] ? args[1] : explicit ?? automatic;
+      const title = args?.[2] ?? args?.[1];
+      const item: OutlineItem = { title: title ? `${number} — ${title}` : 'Partie', line: lineAt(match.index!), kind: 'partie', children: [] };
       children.push(item);
-      let depth = 1; let end = match.index! + match[0].length;
-      while (end < code.length && depth) { if (code[end] === '(') depth++; if (code[end] === ')') depth--; end++; }
-      parents.push({ end, children: item.children! });
+      parents.push({ end: call.end, children: item.children!, number, parts: 0 });
     }
   }
   for (const match of code.matchAll(/^\s*(titre|chapitres|algorithmes|structures|langages|difficulte|niveaux|duree|concours)\s*:/gm)) {
@@ -107,10 +145,14 @@ export function exerciseFromTemplate(template: string, data: NewExercise): strin
     }
     result = result.replace(pattern, (_match, prefix) => `${prefix} ${value},`);
   }
-  const content = /(^[ \t]*contenu:\s*)\(/m.exec(mask(result));
+  const code = structuralCode(result);
+  const constructor = /#let\s+ex\s*=\s*exercice\s*\(/.exec(code);
+  const body = constructor ? callBody(code, constructor.index + constructor[0].length - 1) : undefined;
+  if (body && body.body >= 0) return result.slice(0, body.body + 1) + '\n  #question[Énoncé à compléter.]\n' + result.slice(body.end - 1);
+  // Les banques verrouillées sur une ancienne version gardent leurs modèles.
+  const content = /(^[ \t]*contenu:\s*)\(/m.exec(code);
   if (!content) throw new Error('Modèle incompatible : contenu absent.');
   const start = content.index + content[0].length;
-  const code = mask(result);
   let depth = 1; let end = start;
   while (end < code.length && depth) { if (code[end] === '(') depth++; if (code[end] === ')') depth--; end++; }
   if (depth) throw new Error('Modèle incompatible : contenu non fermé.');

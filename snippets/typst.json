@@ -251,26 +251,26 @@
   "MPI — Question de banque": {
     "prefix": "²question",
     "body": [
-      "question(",
-      "  [${1:Énoncé}],",
-      "  solution: [${2:Solution}],",
-      "),",
+      "#question[",
+      "  ${1:Énoncé}",
+      "][",
+      "  ${2:Solution}",
+      "]",
       "$0"
     ],
-    "description": "Question dans le tuple contenu: (...) d’un exercice, sans # (bibliothèque MPI)"
+    "description": "Énoncé suivi de sa solution dans deux blocs Typst (bibliothèque MPI)"
   },
   "MPI — Question avec barème": {
     "prefix": "²question-bareme",
     "body": [
-      "question(",
-      "  [${1:Énoncé}],",
-      "  solution: [${2:Solution}],",
-      "  bareme: ${3|0.25,0.5,1,1.5,2,2.5,3,3.5,4|},",
-      "  label: <${4:q-etiquette}>,",
-      "),",
+      "#question(bareme: ${3|0.25,0.5,1,1.5,2,2.5,3,3.5,4|}, label: <${4:q-etiquette}>)[",
+      "  ${1:Énoncé}",
+      "][",
+      "  ${2:Solution}",
+      "]",
       "$0"
     ],
-    "description": "Question avec points et étiquette dans contenu: (...) (bibliothèque MPI)"
+    "description": "Question avec points et étiquette, suivie de sa solution"
   },
   "MPI — Exercice réutilisable": {
     "prefix": "²exercice-banque",
@@ -279,19 +279,19 @@
       "",
       "#let ex = exercice(",
       "  meta: (",
-      "    \"${1:Titre}\",",
+      "    titre: \"${1:Titre}\",",
       "    chapitres: (\"${2:graphes}\",),",
       "    difficulte: ${3|1,2,3,4,5|},",
       "    niveaux: (\"${4:MPI}\",),",
       "    duree: (${5:0}, ${6:20}),",
       "  ),",
-      "  contenu: (",
-      "    question(",
-      "      [${7:Énoncé}],",
-      "      solution: [${8:Solution}],",
-      "    ),",
-      "  ),",
-      ")",
+      ")[",
+      "  #question[",
+      "    ${7:Énoncé}",
+      "  ][",
+      "    ${8:Solution}",
+      "  ]",
+      "]",
       "$0"
     ],
     "description": "Fichier complet exportant ex ; adapter les métadonnées au vocabulaire de la banque MPI"
@@ -383,5 +383,23 @@
     "prefix": "²nouvelle-diapositive",
     "body": "#nouvelle-diapositive()$0",
     "description": "Nouvelle diapositive avec le même titre, sans saut de page dans le cours (bibliothèque MPI)"
+  },
+  "MPI — Partie de banque": {
+    "prefix": "²partie",
+    "body": [
+      "#partie(\"${1:Titre}\")[",
+      "  ${2:${TM_SELECTED_TEXT}}",
+      "]",
+      "$0"
+    ],
+    "description": "Partie à numérotation automatique ; importer partie depuis /load.typ"
+  },
+  "MPI — Données d’un bloc": {
+    "prefix": "²donnees",
+    "body": [
+      "#let ${1:extrait} = donnees(${2:partie-exportee})",
+      "$0"
+    ],
+    "description": "Extraire explicitement les données d’une partie ou question réutilisable ; importer donnees depuis /load.typ"
   }
 }

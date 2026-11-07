@@ -37,6 +37,17 @@ export async function run(_api: unknown, extension: vscode.Extension<unknown>): 
       await vscode.commands.executeCommand('jumpToNextSnippetPlaceholder');
       assert.equal(editor.selection.active.line, compact ? 1 : 3, 'Tab rejoint la sortie du bloc');
     }
+    for (const prefix of ['question', 'question-bareme', 'partie']) {
+      await vscode.commands.executeCommand('leaveSnippet');
+      await editor.edit(edit => edit.replace(new vscode.Range(document.positionAt(0), document.positionAt(document.getText().length)), ''));
+      editor.selection = new vscode.Selection(0, 0, 0, 0);
+      const name = Object.keys(snippets).find(name => snippets[name].prefix === `²${prefix}`)!;
+      await vscode.commands.executeCommand('editor.action.insertSnippet', { langId: 'typst', name });
+      const text = document.getText();
+      assert.ok(text.startsWith(prefix === 'partie' ? '#partie(' : '#question'));
+      assert.ok(!text.includes('contenu:'));
+      if (prefix.startsWith('question')) assert.ok(text.includes('][\n'), 'La solution suit le bloc de l’énoncé');
+    }
     await vscode.commands.executeCommand('leaveSnippet');
     await editor.edit(edit => edit.replace(new vscode.Range(document.positionAt(0), document.positionAt(document.getText().length)), 'Contenu sélectionné.'));
     editor.selection = new vscode.Selection(document.positionAt(0), document.positionAt(document.getText().length));
