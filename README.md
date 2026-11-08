@@ -124,7 +124,7 @@ Le bouton **Exporter le PDF** utilise la session Tinymist de la variante affich�
 
 Sans Tinymist, un lecteur PDF se recharge à l'enregistrement, sans synchronisation source. Dans ce mode, enregistrer les fichiers avant d'exporter. Une erreur de compilation apparaît dans Problems et dans la barre d'état, avec un lien vers le journal.
 
-La barre d'outils indique la page actuellement la plus visible et le nombre total de pages, avec Tinymist comme dans le lecteur PDF de secours. Saisir un numéro puis appuyer sur Entrée pour rejoindre une page ; les boutons **‹** et **›** et les touches **←** et **→** passent à la page précédente ou suivante. Les touches **Début** et **Fin** rejoignent la première et la dernière page, hors des champs de saisie. Sur Mac, elles correspondent à **Fn+←** et **Fn+→**. L'indicateur suit le défilement, les recompilations et les changements de variante.
+La barre d'outils indique la page courante et le nombre total de pages, avec Tinymist comme dans le lecteur PDF de secours. Saisir un numéro puis appuyer sur Entrée pour rejoindre une page ; les boutons **‹** et **›** et les touches **←** et **→** passent à la page précédente ou suivante. Les touches **Début** et **Fin** rejoignent la première et la dernière page, hors des champs de saisie. Sur Mac, elles correspondent à **Fn+←** et **Fn+→**. La page choisie reste sélectionnée même si plusieurs slides sont visibles. Lors du défilement manuel, l'indicateur suit la page la plus visible ; il s'actualise aussi après les recompilations et les changements de variante.
 
 | Réglage | Rôle |
 | --- | --- |

@@ -282,9 +282,9 @@ test('navigation Tinymist : choisir une page, ignorer les messages étrangers et
   const listeners = new Map<string, (event?: any) => void>();
   const messages: any[] = [];
   const queued: (() => void)[] = [];
-  let scrollTop = 0;
-  const viewport = { get scrollTop() { return scrollTop; }, scrollTo: ({ top }: { top: number }) => { scrollTop = top; }, getBoundingClientRect: () => ({ top: 0, bottom: 100, height: 100 }) };
-  const pages = [0, 1, 2].map(index => ({ getAttribute: () => String(index), getBoundingClientRect: () => ({ top: index * 100 - scrollTop, bottom: (index + 1) * 100 - scrollTop }) }));
+  let scrollTop = 0, pageHeight = 100, viewportHeight = 100, roundScroll = false, maxScrollTop = Infinity;
+  const viewport = { get scrollTop() { return scrollTop; }, scrollTo: ({ top }: { top: number }) => { scrollTop = Math.min(maxScrollTop, roundScroll ? Math.ceil(top) : top); }, getBoundingClientRect: () => ({ top: 0, bottom: viewportHeight, height: viewportHeight }) };
+  const pages = [0, 1, 2].map(index => ({ getAttribute: () => String(index), getBoundingClientRect: () => ({ top: index * pageHeight - scrollTop, bottom: (index + 1) * pageHeight - scrollTop }) }));
   const parent = { postMessage: (message: unknown) => messages.push(message) };
   runInNewContext(/<script>([\s\S]*?)<\/script>/.exec(html)![1], {
     parent,
@@ -335,10 +335,25 @@ test('navigation Tinymist : choisir une page, ignorer les messages étrangers et
     for (const modifier of ['ctrlKey', 'altKey', 'metaKey', 'shiftKey', 'defaultPrevented']) listeners.get('keydown')!({ ...key, key: keyName, [modifier]: true });
     assert.equal(messages.length, count);
   }
+  pageHeight = 100.25; viewportHeight = 240; roundScroll = true;
+  jump(3);
+  jump(2);
+  assert.equal(messages.at(-1).current, 2, 'Un arrondi de défilement ne doit pas resélectionner la slide suivante, même si elle est un peu plus visible');
+  scrollTop = 200.5;
+  listeners.get('scroll')!(); flush();
+  assert.equal(messages.at(-1).current, 3, 'Le défilement manuel reprend le suivi de la page visible');
+  viewportHeight = 500; maxScrollTop = 0;
+  jump(3);
+  assert.equal(messages.at(-1).current, 3, 'Fin sélectionne la dernière slide même lorsque plusieurs pages tiennent dans le lecteur');
+  jump(2);
+  assert.equal(messages.at(-1).current, 2);
+  listeners.get('message')!({ source: parent, data: { type: 'goToPage', token: 'secret', page: 2, navigation: 8 } }); flush();
+  assert.equal(messages.at(-1).navigation, 8, 'Une navigation est acquittée même si la page et le défilement restent identiques');
 });
 test('lecteur : raccourcis de variantes et début/fin depuis le PDF, la barre et l’iframe active', async () => {
   const listeners = new Map<string, ((event: any) => void)[]>();
   const messages: any[] = [];
+  const queued: (() => void)[] = [];
   const elements = new Map<string, any>();
   const element = () => ({ dataset: {}, classList: { toggle() {} }, setAttribute() {}, addEventListener() {}, append() {}, remove() {}, contentWindow: { postMessage() {} } });
   const document = {
@@ -348,14 +363,16 @@ test('lecteur : raccourcis de variantes et début/fin depuis le PDF, la barre et
     querySelectorAll: () => ['enonce', 'corrige', 'presentation'].map(id => ({ id }))
   };
   const window = { addEventListener: (type: string, listener: (event: any) => void) => listeners.set(type, [...listeners.get(type) ?? [], listener]) };
-  runInNewContext(await readFile(path.join(process.cwd(), 'dist/viewer/viewer.mjs'), 'utf8'), {
+  const context = {
     document, window, URL,
-    requestAnimationFrame: () => 0, cancelAnimationFrame: () => undefined,
+    requestAnimationFrame: (callback: () => void) => queued.push(callback), cancelAnimationFrame: () => undefined,
     getComputedStyle: () => ({ getPropertyValue: () => '' }),
     acquireVsCodeApi: () => ({ postMessage: (message: unknown) => messages.push(message) }),
     MutationObserver: class { observe() {} },
     ResizeObserver: class { observe() {} }
-  });
+  };
+  runInNewContext(await readFile(path.join(process.cwd(), 'dist/viewer/viewer.mjs'), 'utf8'), context);
+  const flush = () => { while (queued.length) queued.shift()!(); };
   elements.get('presentation').onclick();
   assert.equal(messages.at(-1).type, 'presentation', 'La troisième variante est sélectionnable');
   elements.get('save').onclick();
@@ -397,6 +414,12 @@ test('lecteur : raccourcis de variantes et début/fin depuis le PDF, la barre et
   const navigations: any[] = [];
   frames[0].contentWindow.postMessage = (message: any) => navigations.push(message);
   dispatch('message', { ...event, data: { type: 'pageProgress', token: 'secret', current: 3, total: 7 } });
+  elements.get('previous-page').onclick();
+  elements.get('previous-page').onclick();
+  assert.deepEqual(navigations.slice(-2).map(message => message.page), [2, 1], 'Deux clics rapides reculent de deux pages avant le retour de Tinymist');
+  dispatch('message', { ...event, data: { type: 'pageProgress', token: 'secret', current: 2, total: 7, navigation: navigations.at(-2).navigation } });
+  assert.equal(elements.get('page-number').value, '1', 'Le retour d’une ancienne navigation ne rétablit pas une page dépassée');
+  dispatch('message', { ...event, data: { type: 'pageProgress', token: 'secret', current: 1, total: 7, navigation: navigations.at(-1).navigation } });
   const key = { target: { closest: () => null }, preventDefault() {} };
   for (const [keyName, page] of [['End', 7], ['Home', 1]] as const) {
     dispatch('keydown', { ...key, key: keyName });
@@ -429,8 +452,24 @@ test('lecteur : raccourcis de variantes et début/fin depuis le PDF, la barre et
   host.scrollTo = ({ top }: { top: number }) => { host.scrollTop = top; };
   dispatch('keydown', { ...key, key: 'End' });
   assert.equal(host.scrollTop, 600, 'Fin rejoint la dernière page du PDF de secours');
+  elements.get('previous-page').onclick();
+  elements.get('previous-page').onclick();
+  assert.equal(host.scrollTop, 400, 'Deux clics rapides reculent aussi de deux pages dans le PDF de secours');
   dispatch('keydown', { ...key, key: 'Home' });
   assert.equal(host.scrollTop, 0, 'Début rejoint la première page du PDF de secours');
+  host.getBoundingClientRect = () => ({ top: 0, bottom: 240, height: 240 });
+  const pages = Array.from({ length: 7 }, (_, index) => ({ dataset: { page: String(index + 1) }, getBoundingClientRect: () => ({ top: index * 100.25 - host.scrollTop, bottom: (index + 1) * 100.25 - host.scrollTop }) }));
+  host.querySelector = (selector: string) => pages[Number(/data-page="(\d+)"/.exec(selector)![1]) - 1];
+  host.querySelectorAll = () => pages;
+  host.scrollTo = ({ top }: { top: number }) => { host.scrollTop = Math.ceil(top); };
+  runInNewContext('pdfPages = 7', context);
+  dispatch('keydown', { ...key, key: 'End' }); flush();
+  elements.get('previous-page').onclick(); flush();
+  assert.equal(elements.get('page-number').value, '6', 'Le PDF conserve la page demandée malgré les arrondis et plusieurs slides visibles');
+  host.scrollTop = 100.25;
+  runInNewContext('updatePdfProgress()', context);
+  assert.equal(elements.get('page-number').value, '2', 'Le suivi du défilement manuel reste actif');
+  dispatch('keydown', { ...key, key: 'Home' }); flush();
   dispatch('message', { data: { channel: 'test', type: 'reset' } });
   dispatch('keydown', { ...key, key: 'End' });
   assert.equal(host.scrollTop, 0, 'Aucun saut avant que la pagination soit disponible');

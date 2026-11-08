@@ -17,25 +17,30 @@ html:not(.exercices-jumps) .typst-jump-ripple,html:not(.exercices-jumps) .typst-
 (() => {
   const token = ${JSON.stringify(token)};
   const pageSelector = '#typst-app .typst-page-inner[data-page-number], #typst-app .typst-page.canvas-mode[data-page-number]';
-  let pending, previous;
+  let pending, previous, navigated;
+  let navigation = 0;
   function update() {
     const viewport = document.getElementById('typst-container-main');
     const pages = [...document.querySelectorAll(pageSelector)];
     if (!viewport || !pages.length) return;
     const bounds = viewport.getBoundingClientRect();
     if (!bounds.height) return;
-    let current = 1, total = 0, visible = -1;
+    let current = 1, total = 0, visible = -1, selectedVisible = false;
     for (const page of pages) {
       const number = Number(page.getAttribute('data-page-number')) + 1;
       total = Math.max(total, number);
       const rect = page.getBoundingClientRect();
       const height = Math.max(0, Math.min(rect.bottom, bounds.bottom) - Math.max(rect.top, bounds.top));
+      if (number === navigated?.page && height > 0) selectedVisible = true;
       if (height > visible) { visible = height; current = number; }
     }
-    const value = current + '/' + total;
+    // Keep an explicit selection across pixel rounding and clamped scrolling at the end.
+    if (navigated && Math.abs(viewport.scrollTop - navigated.top) < 1 && selectedVisible) current = navigated.page;
+    else navigated = undefined;
+    const value = current + '/' + total + '/' + navigation;
     if (value === previous) return;
     previous = value;
-    parent.postMessage({ type: 'pageProgress', token, current, total }, '*');
+    parent.postMessage({ type: 'pageProgress', token, current, total, navigation }, '*');
   }
   function schedule() { cancelAnimationFrame(pending); pending = requestAnimationFrame(update); }
   addEventListener('scroll', schedule, { capture: true, passive: true });
@@ -50,10 +55,14 @@ html:not(.exercices-jumps) .typst-jump-ripple,html:not(.exercices-jumps) .typst-
     if (event.data.type === 'goToPage') {
       const number = event.data.page;
       if (!Number.isInteger(number) || number < 1) return;
+      if (Number.isInteger(event.data.navigation) && event.data.navigation >= 0) navigation = event.data.navigation;
       const page = [...document.querySelectorAll(pageSelector)].find(page => Number(page.getAttribute('data-page-number')) === number - 1);
       const viewport = document.getElementById('typst-container-main');
-      if (page && viewport) viewport.scrollTo({ top: viewport.scrollTop + page.getBoundingClientRect().top - viewport.getBoundingClientRect().top });
-      schedule();
+      if (page && viewport) {
+        viewport.scrollTo({ top: viewport.scrollTop + page.getBoundingClientRect().top - viewport.getBoundingClientRect().top, behavior: 'instant' });
+        navigated = { page: number, top: viewport.scrollTop };
+      }
+      update();
       return;
     }
     if (typeof event.data.scrollbarForeground === 'string') document.documentElement.style.setProperty('--vscode-foreground', event.data.scrollbarForeground);

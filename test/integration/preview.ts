@@ -2,11 +2,47 @@ import * as vscode from 'vscode';
 import * as path from 'node:path';
 import { stat, rm, writeFile } from 'node:fs/promises';
 import assert from 'node:assert/strict';
-import { Previews } from '../../src/preview';
+import { Preview, Previews } from '../../src/preview';
 import { Runner } from '../../src/runner';
 import { errorStatus } from '../../src/errors';
 import { forward } from '../../src/tinymist';
 import { fixture, pdfText, until } from './helpers';
+
+async function checkSlideNavigation(preview: Preview): Promise<void> {
+  let result: { total: number; rapid: number; settled: number } | undefined;
+  const listener = preview.panel.webview.onDidReceiveMessage(message => { if (message.type === 'navigationTest') result = message; });
+  const html = preview.panel.webview.html;
+  const nonce = /<script nonce="([^"]+)"/.exec(html)![1];
+  // Instrument only the test webview; exercise the real toolbar and renderer.
+  preview.panel.webview.html = html.replace('<script nonce=', `<script nonce="${nonce}">
+    const testApi = acquireVsCodeApi();
+    let pdfReady = false;
+    window.acquireVsCodeApi = () => ({ ...testApi, postMessage(message) {
+      if (message.type === 'pdfReady') pdfReady = true;
+      testApi.postMessage(message);
+    } });
+    (async () => {
+      const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+      const number = document.getElementById('page-number');
+      while (Number(number.max) < 3 || (!document.body.classList.contains('native-preview') && !pdfReady)) await delay(50);
+      await delay(500);
+      const total = Number(number.max);
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'End', bubbles: true }));
+      await delay(150);
+      document.getElementById('previous-page').click();
+      document.getElementById('previous-page').click();
+      const rapid = Number(number.value);
+      await delay(500);
+      testApi.postMessage({ type: 'navigationTest', total, rapid, settled: Number(number.value) });
+    })();
+  </script><script nonce=`);
+  try {
+    await until(() => !!result, 'Navigation réelle dans la présentation');
+    assert.equal(result!.rapid, result!.total - 2, 'Deux clics rapides reculent de deux slides');
+    assert.equal(result!.settled, result!.total - 2, 'Le rendu conserve la slide demandée');
+  } finally { listener.dispose(); }
+}
+
 export async function run(api: any, extension: vscode.Extension<any>): Promise<void> {
   const { temporary, previewBank, relative, generated, file } = await fixture();
   const previews = new Previews({ extensionUri: extension.extensionUri } as vscode.ExtensionContext, async () => undefined);
@@ -196,6 +232,7 @@ Une solution réservée à la présentation.]
       assert.equal(exportedText.includes('Réponse réservée'), variant === 'corrige', 'Le PDF respecte la variante de corrigé');
       if (variant === 'presentation') {
         await until(() => courseProgress.some(progress => progress.total > 1), 'Nombre total de diapositives affiché');
+        await checkSlideNavigation(coursePreview);
       }
     }
     await coursePreview.select('enonce');
@@ -211,6 +248,7 @@ Une solution réservée à la présentation.]
       assert.equal(pdf.panel.title, 'cours-support-cor.pdf');
       await pdf.select('presentation');
       assert.equal(pdf.panel.title, 'presentation-support.pdf');
+      await checkSlideNavigation(pdf);
       for (const filename of ['cours-support.pdf', 'cours-support-cor.pdf', 'presentation-support.pdf']) assert.ok((await stat(path.join(temporary, 'build/support', filename))).size > 1000);
     } finally { courseFallback.dispose(); }
     vscode.workspace.updateWorkspaceFolders(vscode.workspace.workspaceFolders!.length, 0, { uri: previewBank.scope, name: previewBank.name });

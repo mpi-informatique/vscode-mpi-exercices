@@ -18,9 +18,11 @@ export async function fixture() {
     await writeFile(path.join(temporary, 'templates/colle.typ'), customTemplate);
     assert.ok((await documentTemplates(previewBank)).some(template => template.type === 'colle'));
     const relative = 'exercices/banque/graphes/test-creation.typ';
+    const statement = '#heading(level: 2)[Repère du test]\n      Un texte unique avec une formule $x^2 + y^2 = z^2$.';
+    const solution = '#heading(level: 2)[Repère du corrigé] Une correction.';
     const generated = exerciseFromTemplate(await readFile(path.join(bank, 'templates/exercice.typ'), 'utf8'), {
       title: 'Test création', chapters: ['graphes'], algorithms: [], structures: [], languages: [], levels: ['MPI'], difficulty: 2, minutes: 20
-    }).replace('Énoncé à compléter.', '#heading(level: 2)[Repère du test]\n      Un texte unique avec une formule $x^2 + y^2 = z^2$.').replace('solution: none', 'solution: [#heading(level: 2)[Repère du corrigé] Une correction.]');
+    }).replace('#question[Énoncé à compléter.]', `#question[${statement}][${solution}]`).replace('Énoncé à compléter.', statement).replace('solution: none', `solution: [${solution}]`);
     const file = path.join(temporary, relative);
     await writeFile(file, generated);
     return { temporary, previewBank, customTemplate, relative, generated, file };
