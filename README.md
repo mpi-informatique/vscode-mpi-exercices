@@ -71,6 +71,7 @@ Par exemple, `²exercice-titre` insère `#exercice(titre: [Titre])[…]`. Le tit
 | `²exsol` | Exercice de cours suivi de sa solution |
 | `²solpause` | Solution avec `#pause` |
 | `²remarque` | `#underline[Remarque] : ` |
+| `²intuitivement` | `#underline[Intuitivement] : ` |
 | `²exemple` | `#underline[Exemple] : ` |
 | `²attention` | `#underline[Attention] : ` |
 | `²colonnes-cours` | Deux colonnes dans le cours, contenus à la suite en présentation |

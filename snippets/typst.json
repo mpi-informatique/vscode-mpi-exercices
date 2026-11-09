@@ -319,6 +319,11 @@
     "body": "#underline[Remarque] : $0",
     "description": "Remarque en ligne avec titre souligné"
   },
+  "MPI — Intuitivement": {
+    "prefix": "²intuitivement",
+    "body": "#underline[Intuitivement] : $0",
+    "description": "Intuition en ligne avec titre souligné"
+  },
   "MPI — Exemple": {
     "prefix": "²exemple",
     "body": "#underline[Exemple] : $0",
