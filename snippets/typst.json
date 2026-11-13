@@ -1,4 +1,9 @@
 {
+  "MPI — Séquent": {
+    "prefix": "²sequent",
+    "body": "#sequent((\\$${1:A → B, A}\\$, \\$${2:B}\\$))$0",
+    "description": "Séquent lié au prouveur ; importer sequent depuis logique (module de /load.typ)"
+  },
   "MPI — Commentaire d'algorithme": {
     "prefix": "²commentaire",
     "body": "#commentaire[${1:${TM_SELECTED_TEXT}}]$0",
