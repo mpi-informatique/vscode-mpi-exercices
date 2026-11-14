@@ -16,6 +16,9 @@ export async function run(api: any, extension: vscode.Extension<any>): Promise<v
   const project = { root: temporary, name: 'Corrections fictives', scope: vscode.Uri.file(temporary) };
   const runner = new Runner();
   const previews = new Previews({ extensionUri: extension.extensionUri } as vscode.ExtensionContext, async () => undefined);
+  const previousMode = process.env.EXERCICES_MODE;
+  // La banque fictive n'a pas de clone public voisin ; conserver les packages verrouillés attendus ici.
+  process.env.EXERCICES_MODE = 'locked';
   try {
     const root = process.env.MPI_PRIVATE_ROOT!;
     for (const file of ['lib', 'templates', 'scripts', 'justfile', 'flake.nix', 'flake.lock', 'load.typ'])
@@ -61,13 +64,55 @@ export async function run(api: any, extension: vscode.Extension<any>): Promise<v
     const inputs = await copyInputs(path.join(temporary, source));
     assert.equal(inputs[1], 'notes=' + notes.join('\n') + '\n');
     assert.equal(inputs[3], 'recap=' + recap.join('\n') + '\n');
+    const scanFile = path.join(temporary, 'corrections/2026/ds/test/tmp/usb-images/Exémple.PDF');
+    await mkdir(path.dirname(scanFile), { recursive: true });
+    await cp(path.join(temporary, 'build/corrections/2026/ds/test/copies/exemple/exemple.pdf'), scanFile);
     const preview = await previews.open(project, source, 'enonce');
     assert.ok(preview.native);
+    // Cliquer le vrai bouton du lecteur, sans dépendre d'une copie nominative.
+    let scanButton = false;
+    const buttonListener = preview.panel.webview.onDidReceiveMessage(message => { if (message.type === 'scanButtonTest') scanButton = message.visible; });
+    const html = preview.panel.webview.html;
+    const nonce = /<script nonce="([^"]+)"/.exec(html)![1];
+    preview.panel.webview.html = html.replace('<script nonce=', `<script nonce="${nonce}">
+      const testApi = acquireVsCodeApi();
+      window.acquireVsCodeApi = () => testApi;
+      let clicked = false;
+      window.addEventListener('message', ({ data }) => {
+        if (data?.type !== 'show' || clicked) return;
+        clicked = true;
+        setTimeout(() => {
+          const button = document.getElementById('scan');
+          testApi.postMessage({ type: 'scanButtonTest', visible: !button.hidden });
+          button.click();
+        }, 0);
+      });
+    </script><script nonce=`);
+    const key = path.join(temporary, source);
+    await until(() => previews.scans.entries.has(key), 'Le bouton ouvre le scan préparé');
+    assert.equal(scanButton, true, 'Le bouton est visible pour une copie');
+    const scan = previews.scans.entries.get(key)!;
+    let rendered = false;
+    let pages = 0;
+    const errors: string[] = [];
+    const scanListener = scan.webview.onDidReceiveMessage(message => {
+      if (message.type === 'pdfReady') rendered = true;
+      if (message.type === 'pageProgress') pages = message.total;
+      if (['pdfError', 'clientError'].includes(message.type)) errors.push(message.error);
+    });
+    await until(() => rendered && pages > 0, 'Le scan est rendu et paginé dans VS Code');
+    assert.deepEqual(errors, []);
+    assert.equal(scan.viewColumn, preview.panel.viewColumn! + 1, 'Le scan est placé à côté de la correction');
+    assert.equal(await previews.scans.open(project, source, preview.panel.viewColumn), scan, 'Un second clic réutilise le volet');
+    scanListener.dispose();
+    buttonListener.dispose();
     const initial = preview.sessions.get('enonce');
     await writeFile(path.join(temporary, 'corrections/2026/ds/test/notes.csv'), notes.join('\n') + '\n');
     await until(() => preview.sessions.get('enonce') !== initial && !!preview.sessions.get('enonce'), 'Statistiques CSV rechargées dans Tinymist');
-    console.log('Corrections : découverte, modèle, notes et exports vérifiés, sans lecture des PDF.');
+    console.log('Corrections : découverte, modèle, notes, exports et scan voisin rendu avec pagination vérifiés.');
   } finally {
+    if (previousMode === undefined) delete process.env.EXERCICES_MODE;
+    else process.env.EXERCICES_MODE = previousMode;
     runner.dispose();
     previews.dispose();
     const index = vscode.workspace.workspaceFolders?.findIndex(folder => folder.uri.fsPath === temporary) ?? -1;

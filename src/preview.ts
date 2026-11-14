@@ -12,6 +12,7 @@ import { Preparation } from './preparation';
 import { associatedCodes, openAssociatedCode } from './code-files';
 import { pdfViewerHtml } from '@mpi-informatique/exercices-core/pdf-viewer';
 import { scrollbarStyle } from './scrollbars';
+import { Scans } from './scans';
 
 export interface Preview {
   bank: Bank; source: string; variant: Variant; panel: vscode.WebviewPanel;
@@ -29,6 +30,7 @@ const escape = (text: string) => text.replace(/[&<>"']/g, c => ({ '&': '&amp;', 
 
 export class Previews implements vscode.Disposable {
   readonly entries = new Map<string, Preview>();
+  readonly scans: Scans;
   private readonly subscriptions: vscode.Disposable[] = [];
   private timer?: NodeJS.Timeout;
   private editor = vscode.window.activeTextEditor;
@@ -37,6 +39,8 @@ export class Previews implements vscode.Disposable {
   private disposed = false;
   private preparationEpoch = 0;
   constructor(private readonly context: vscode.ExtensionContext, private readonly exportPdf: (preview: Preview, variant: Variant) => Promise<void>, private readonly hasTinymist = () => !!vscode.extensions.getExtension('myriad-dreamin.tinymist'), private readonly startTinymist = tinymist.start) {
+    this.scans = new Scans(context);
+    this.subscriptions.push(this.scans);
     this.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(editor => { if (editor?.document.uri.path.endsWith('.typ')) this.editor = editor; }), vscode.window.onDidChangeTextEditorSelection(event => {
       const mode = vscode.workspace.getConfiguration('tinymist').get<string>('preview.scrollSync', 'onSelectionChangeByMouse');
       if (mode === 'never' || event.kind === vscode.TextEditorSelectionChangeKind.Command || (mode === 'onSelectionChangeByMouse' && event.kind !== vscode.TextEditorSelectionChangeKind.Mouse)) return;
@@ -140,7 +144,7 @@ export class Previews implements vscode.Disposable {
       panel.title = pdfFilename(source, preview.variant, documentType);
       const hasCode = (await associatedCodes({ bank, source })).length > 0;
       if (ready && !disposed) await post({ type: 'compileError', message: errors.get(preview.variant) ?? '' });
-      if (ready && !disposed) await post({ type: 'show', variant: preview.variant, labels, hasCode, native: preview.native, jumps: preview.jumps, dark: isDark(), pdf: pdfs.get(preview.variant), sessions: Object.fromEntries([...sessions].map(([v, s]) => [v, s.url])), tokens: Object.fromEntries([...sessions].map(([v, s]) => [v, s.id])) });
+      if (ready && !disposed) await post({ type: 'show', variant: preview.variant, labels, hasCode, hasScan: documentType === 'copie', native: preview.native, jumps: preview.jumps, dark: isDark(), pdf: pdfs.get(preview.variant), sessions: Object.fromEntries([...sessions].map(([v, s]) => [v, s.url])), tokens: Object.fromEntries([...sessions].map(([v, s]) => [v, s.id])) });
     };
     const select = async (value: Variant) => {
       if (disposed || !variants.includes(value)) return;
@@ -199,6 +203,7 @@ export class Previews implements vscode.Disposable {
           await describe();
         }
         else if (message?.type === 'code') await openAssociatedCode({ bank, source });
+        else if (message?.type === 'scan') await this.scans.open(bank, source, panel.viewColumn);
       } catch (error) { if (!disposed) { this.report(error); await post({ type: 'status', message: String(error) }); } }
     });
     panel.onDidDispose(() => {

@@ -14,6 +14,7 @@ import { EnvironmentCache } from '../src/environment-cache';
 import { Preparation } from '../src/preparation';
 import { bankCandidates } from '../src/discovery';
 import { copyDirectory, copyInputs } from '../src/copy-inputs';
+import { copyScans } from '../src/copy-scans';
 import { mkdtemp, mkdir, rm, writeFile, readFile, stat, utimes } from 'node:fs/promises';
 import * as path from 'node:path';
 import { tmpdir } from 'node:os';
@@ -203,6 +204,25 @@ test('copies : lire les CSV du DS, gérer le BOM et les fichiers absents', async
   } finally { await rm(temporary, { recursive: true, force: true }); }
 });
 
+test('copies : retrouver le scan préparé, y compris issu des TIFF, et respecter une source PDF explicite', async () => {
+  const root = await mkdtemp(path.join(tmpdir(), 'mpi-copy-scans-'));
+  const source = 'ds2/copies/nom-prenom.typ';
+  const scan = path.join(root, 'ds2/tmp/usb-images/Nom_Prénom.PDF');
+  try {
+    for (const folder of ['ds2/copies', 'ds2/tmp/usb-images', 'ds1/tmp', 'ds2/tmp/originaux']) await mkdir(path.join(root, folder), { recursive: true });
+    for (const file of [scan, path.join(root, 'ds1/tmp/nom-prenom.pdf'), path.join(root, 'ds2/tmp/nom-autre.pdf'), path.join(root, 'ds2/tmp/originaux/nom-prenom.pdf')]) await writeFile(file, 'PDF fictif');
+    assert.deepEqual(await copyScans(root, source, 'source: "https://drive.google.com/file/d/fictif/view"'), [scan]);
+    assert.deepEqual(await copyScans(root, 'ds2/copies/inconnu.typ', ''), []);
+    const explicit = path.join(root, 'ds2/tmp/pages.pdf');
+    await writeFile(explicit, 'PDF fictif');
+    assert.deepEqual(await copyScans(root, source, '// source: "faux.pdf"\n#let texte = "source: faux.pdf"\n#let donnees = (source: "../tmp/pages.pdf",)'), [explicit]);
+    assert.deepEqual(await copyScans(root, source, 'source: "/ds2/tmp/pages.pdf"'), [explicit]);
+    const duplicate = path.join(root, 'ds2/tmp/nom-prenom.pdf');
+    await writeFile(duplicate, 'Autre PDF fictif');
+    assert.deepEqual(new Set(await copyScans(root, source, '')), new Set([scan, duplicate]), 'Les homonymes restent à départager, sans ouvrir arbitrairement un PDF');
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
 test('catalogue automatique : inactif sans changements, regroupement, relance et erreurs', async () => {
   let calls = 0; let release!: () => void;
   const errors: unknown[] = [];
@@ -390,16 +410,20 @@ test('lecteur : raccourcis de variantes et début/fin depuis le PDF, la barre et
       assert.equal(messages.length, count);
     }
   }
-  dispatch('message', { data: { channel: 'test', type: 'show', hasCode: true, native: true, variant: 'enonce', labels: { enonce: 'Cours', corrige: 'Cours corrigé', presentation: 'Présentation' }, sessions: { enonce: 'http://localhost:123/enonce', corrige: 'http://localhost:123/corrige' }, tokens: { enonce: 'secret', corrige: 'other' } } });
+  dispatch('message', { data: { channel: 'test', type: 'show', hasCode: true, hasScan: true, native: true, variant: 'enonce', labels: { enonce: 'Cours', corrige: 'Cours corrigé', presentation: 'Présentation' }, sessions: { enonce: 'http://localhost:123/enonce', corrige: 'http://localhost:123/corrige' }, tokens: { enonce: 'secret', corrige: 'other' } } });
   assert.equal(elements.get('code').hidden, false, 'Le bouton de code apparaît pour les feuilles avec code');
   elements.get('code').onclick();
   assert.equal(messages.at(-1).type, 'code', 'Le bouton demande l’ouverture du code à l’extension');
+  assert.equal(elements.get('scan').hidden, false);
+  elements.get('scan').onclick();
+  assert.equal(messages.at(-1).type, 'scan', 'Le bouton demande l’ouverture du scan à côté');
   // Frames are created in session order; retain their windows to exercise origin/source checks.
   const frames: any[] = [];
   document.createElement = () => { const frame = element(); frames.push(frame); return frame; };
   dispatch('message', { data: { channel: 'test', type: 'reset' } });
   dispatch('message', { data: { channel: 'test', type: 'show', native: true, variant: 'enonce', labels: { enonce: 'Énoncé', corrige: 'Corrigé', presentation: '' }, sessions: { enonce: 'http://localhost:123/enonce', corrige: 'http://localhost:123/corrige' }, tokens: { enonce: 'secret', corrige: 'other' } } });
   assert.equal(elements.get('code').hidden, true, 'Le bouton disparaît pour une feuille sans code');
+  assert.equal(elements.get('scan').hidden, true, 'Le bouton de scan reste réservé aux copies');
   const event = { source: frames[0].contentWindow, origin: 'http://localhost:123', data: { type: 'selectVariant', token: 'secret', variant: 'corrige' } };
   const count = messages.length;
   dispatch('message', { ...event, origin: 'http://foreign.invalid' });

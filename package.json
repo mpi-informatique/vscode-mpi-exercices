@@ -176,6 +176,12 @@
         "category": "Exercices MPI"
       },
       {
+        "command": "mpiExercices.currentScan",
+        "title": "Afficher le scan à côté",
+        "category": "Exercices MPI",
+        "icon": "$(split-horizontal)"
+      },
+      {
         "command": "mpiExercices.currentCorrige",
         "title": "Voir le corrigé",
         "category": "Exercices MPI",
@@ -350,6 +356,11 @@
           "command": "mpiExercices.collapsesheets",
           "when": "view == mpiExercices.sheets",
           "group": "display@1"
+        },
+        {
+          "command": "mpiExercices.currentScan",
+          "when": "view == mpiExercices.current && mpiExercices.currentIsCopy",
+          "group": "navigation@2"
         },
         {
           "command": "mpiExercices.currentCorrige",

@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as path from 'node:path';
 import { outline, OutlineItem, mask } from './typst';
 import { Sheets, SheetMember, memberItem } from './sheets';
+import { identify } from './documents';
 
 type Node = { title: string; children?: Node[]; uri?: vscode.Uri; line?: number; icon?: string; collapsed?: boolean; member?: SheetMember };
 export class CurrentFile implements vscode.TreeDataProvider<Node>, vscode.Disposable {
@@ -21,6 +22,7 @@ export class CurrentFile implements vscode.TreeDataProvider<Node>, vscode.Dispos
   }
   private update(): void {
     const revision = ++this.revision;
+    void vscode.commands.executeCommand('setContext', 'mpiExercices.currentIsCopy', !!this.current && identify(this.current.getText(), this.current.uri.fsPath)?.type === 'copie');
     if (!this.current?.uri.path.endsWith('.typ')) return;
     const document = this.current;
     const items = outline(document.getText());

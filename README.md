@@ -96,6 +96,8 @@ Ces blocs utilisent les fonctions de la bibliothèque MPI, à importer comme dan
 
 Pour développer directement un préfixe avec Tab, activer facultativement `"editor.tabCompletion": "onlySnippets"` dans les réglages VS Code.
 
+Pour une copie, le bouton **Afficher le scan à côté** est disponible dans l’en-tête de **Fichier** et dans la barre de l’aperçu. Il ouvre le scan dans un volet voisin, avec sa propre pagination. Le PDF est retrouvé dans `tmp/`, `scans/` ou `sources/` du DS d’après le nom de la copie (accents, espaces, tirets et underscores sont équivalents), ou via un chemin PDF dans `donnees.source`. Les PDF préparés à partir des TIFF sont utilisables de la même façon. À défaut, choisir un PDF ; l’association est conservée dans cet espace de travail.
+
 ## Raccourcis
 
 Dans un éditeur Typst ou une liste du panneau, hors des champs de saisie :
