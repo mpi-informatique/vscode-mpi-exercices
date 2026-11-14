@@ -100,6 +100,8 @@ Pour une copie, le bouton **Afficher le scan à côté** est disponible dans l�
 
 ## Raccourcis
 
+Pour une copie, l’en-tête **Fichier** propose aussi **Énoncé du sujet** (document indiqué dans `donnees.feuille`, dans les banques ouvertes) et **Énoncé de la copie** (version annotée de l’élève). Ces boutons gardent la copie comme document courant lorsque l’aperçu a le focus.
+
 Dans un éditeur Typst ou une liste du panneau, hors des champs de saisie :
 
 | Touche | Seule | Avec Maj |

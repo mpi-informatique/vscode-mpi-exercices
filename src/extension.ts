@@ -24,6 +24,7 @@ import { CodeLinks, openAssociatedCode } from './code-files';
 import { LinkCompletion } from './link-completion';
 import { SourceChanges, sourceWatchExclusions, watchedSource } from './source-changes';
 import { registerSnippetPicker } from './snippet-picker';
+import { copySubject } from './copy-subject';
 
 export async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(registerSnippetPicker(JSON.parse(await readFile(path.join(context.extensionPath, 'snippets/typst.json'), 'utf8'))));
@@ -343,6 +344,19 @@ export async function activate(context: vscode.ExtensionContext) {
   register('code', async (argument?: BrowserNode | vscode.Uri) => { const source = await chooseSource(argument); if (source) await openAssociatedCode(source); });
   register('currentCorrige', async () => {
     if (currentFile.uri) await vscode.commands.executeCommand('mpiExercices.corrige', currentFile.uri);
+  });
+  register('currentEnonce', async () => {
+    if (currentFile.uri) await vscode.commands.executeCommand('mpiExercices.enonce', currentFile.uri);
+  });
+  register('currentSubject', async () => {
+    if (!currentFile.uri) return;
+    await discovery;
+    const document = await vscode.workspace.openTextDocument(currentFile.uri);
+    const subject = copySubject(document.getText());
+    if (!subject) throw new Error('Renseigner le chemin du sujet dans donnees.feuille.');
+    const bank = banks.find(bank => existsSync(path.join(bank.root, subject)));
+    if (!bank) throw new Error(`Sujet introuvable : ${subject}. Ouvrir aussi la banque contenant le sujet.`);
+    await previews.open(bank, subject, 'enonce');
   });
   register('currentScan', async () => {
     if (currentFile.uri) {

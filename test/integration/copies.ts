@@ -64,6 +64,16 @@ export async function run(api: any, extension: vscode.Extension<any>): Promise<v
     const inputs = await copyInputs(path.join(temporary, source));
     assert.equal(inputs[1], 'notes=' + notes.join('\n') + '\n');
     assert.equal(inputs[3], 'recap=' + recap.join('\n') + '\n');
+    const editor = await vscode.window.showTextDocument(vscode.Uri.file(path.join(temporary, source)));
+    const edit = new vscode.WorkspaceEdit();
+    edit.replace(editor.document.uri, new vscode.Range(editor.document.positionAt(0), editor.document.positionAt(editor.document.getText().length)), editor.document.getText().replace(/\bfeuille: "[^"]*"/, `feuille: "${exercise}"`));
+    await vscode.workspace.applyEdit(edit);
+    await vscode.commands.executeCommand('mpiExercices.currentEnonce');
+    assert.equal(api.previewCount(), 1, 'Le bouton ouvre l’énoncé de la copie');
+    await vscode.commands.executeCommand('mpiExercices.currentSubject');
+    assert.equal(api.previewCount(), 2, 'Le bouton du sujet ouvre un document distinct, même depuis l’aperçu');
+    const tabs = vscode.window.tabGroups.all.flatMap(group => group.tabs).filter(tab => tab.input instanceof vscode.TabInputWebview && tab.input.viewType.includes('mpiExercices.pdf'));
+    await vscode.window.tabGroups.close(tabs);
     const scanFile = path.join(temporary, 'corrections/2026/ds/test/tmp/usb-images/Exémple.PDF');
     await mkdir(path.dirname(scanFile), { recursive: true });
     await cp(path.join(temporary, 'build/corrections/2026/ds/test/copies/exemple/exemple.pdf'), scanFile);

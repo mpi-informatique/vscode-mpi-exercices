@@ -15,6 +15,7 @@ import { Preparation } from '../src/preparation';
 import { bankCandidates } from '../src/discovery';
 import { copyDirectory, copyInputs } from '../src/copy-inputs';
 import { copyScans } from '../src/copy-scans';
+import { copySubject } from '../src/copy-subject';
 import { mkdtemp, mkdir, rm, writeFile, readFile, stat, utimes } from 'node:fs/promises';
 import * as path from 'node:path';
 import { tmpdir } from 'node:os';
@@ -184,6 +185,12 @@ test('cours et présentation : reconnaissance, paramètres et sorties distinctes
     assert.equal(pdfFilename(source, variant, type), `${format}-support${variant === 'corrige' ? '-cor' : ''}.pdf`);
     assert.equal(pdfFilename('chapitres/langages/cours-kleene.typ', variant, type), `${format}-kleene${variant === 'corrige' ? '-cor' : ''}.pdf`);
   }
+});
+
+test('copies : lire le chemin du sujet sans confondre commentaires et chaînes', () => {
+  assert.equal(copySubject('// feuille: "faux.typ"\n#let donnees = (feuille: "devoirs/sujet.typ",)'), 'devoirs/sujet.typ');
+  assert.equal(copySubject('#let texte = "feuille: faux.typ"'), undefined);
+  for (const source of ['../secret.typ', '/secret.typ', 'https://exemple.fr/sujet.typ', 'scan.pdf']) assert.equal(copySubject(`feuille: ${JSON.stringify(source)}`), undefined);
 });
 
 test('copies : lire les CSV du DS, gérer le BOM et les fichiers absents', async () => {

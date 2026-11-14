@@ -182,6 +182,18 @@
         "icon": "$(split-horizontal)"
       },
       {
+        "command": "mpiExercices.currentEnonce",
+        "title": "Énoncé de la copie",
+        "category": "Exercices MPI",
+        "icon": "$(file-text)"
+      },
+      {
+        "command": "mpiExercices.currentSubject",
+        "title": "Énoncé du sujet",
+        "category": "Exercices MPI",
+        "icon": "$(book)"
+      },
+      {
         "command": "mpiExercices.currentCorrige",
         "title": "Voir le corrigé",
         "category": "Exercices MPI",
@@ -274,6 +286,16 @@
     ],
     "menus": {
       "view/title": [
+        {
+          "command": "mpiExercices.currentSubject",
+          "when": "view == mpiExercices.current && mpiExercices.currentIsCopy",
+          "group": "navigation@3"
+        },
+        {
+          "command": "mpiExercices.currentEnonce",
+          "when": "view == mpiExercices.current && mpiExercices.currentIsCopy",
+          "group": "navigation@4"
+        },
         {
           "command": "mpiExercices.newFolderLibrary",
           "when": "view == mpiExercices.library",
