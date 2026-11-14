@@ -69,6 +69,8 @@ Par exemple, `²exercice-titre` insère `#exercice(titre: [Titre])[…]`. Le tit
 | `²telecharger` | `#telecharger("url")[…]` : fichier à télécharger avec un petit symbole ; importer depuis `/load.typ` |
 | `²commentaire` | `#commentaire[…]` : commentaire visible en gris précédé de `//` ; importer depuis `theoremes` |
 | `²substituer` | `substituer(φ, x, ψ)` en mode mathématique : $φ[x := ψ]$ ; importer `substituer` depuis `/load.typ` |
+| `²methode` | `#methode[…]` : méthode sans numéro avec double barre latérale ; importer depuis `theoremes` |
+| `²methode-titre` | `#methode(title: [Titre])[…]` : méthode avec titre |
 | `²solution` | Solution de cours |
 | `²exsol` | Exercice de cours suivi de sa solution |
 | `²solpause` | Solution avec `#pause` |

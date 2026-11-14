@@ -11,14 +11,14 @@ export async function run(_api: unknown, extension: vscode.Extension<unknown>): 
   const prefixes = Object.values(snippets).map(snippet => snippet.prefix);
   assert.ok(prefixes.every(prefix => typeof prefix === 'string' && prefix.startsWith('²')), 'Un seul préfixe avec ² par snippet');
   assert.equal(new Set(prefixes).size, prefixes.length, 'Préfixes uniques');
-  for (const functionName of ['theoreme', 'definition', 'proposition', 'lemme', 'corollaire', 'propriete', 'exemple-bloc', 'exercice', 'probleme', 'algorithme']) {
+  for (const functionName of ['theoreme', 'definition', 'proposition', 'lemme', 'corollaire', 'propriete', 'exemple-bloc', 'exercice', 'probleme', 'algorithme', 'methode']) {
     assert.ok(prefixes.includes(`²${functionName}`), `Bloc ${functionName}`);
     assert.ok(prefixes.includes(`²${functionName}-titre`), `Variante titrée ${functionName}`);
   }
   const document = await vscode.workspace.openTextDocument({ language: 'typst', content: '' });
   const editor = await vscode.window.showTextDocument(document);
   try {
-    for (const [prefix, functionName, title] of [['solution', 'solution'], ['theoreme', 'theoreme'], ['slides-only', 'slides-only'], ['article-only', 'article-only'], ['exercice-titre', 'exercice', 'Titre'], ['algorithme-titre', 'algorithme', 'Titre']]) {
+    for (const [prefix, functionName, title] of [['solution', 'solution'], ['methode', 'methode'], ['methode-titre', 'methode', 'Titre'], ['theoreme', 'theoreme'], ['slides-only', 'slides-only'], ['article-only', 'article-only'], ['exercice-titre', 'exercice', 'Titre'], ['algorithme-titre', 'algorithme', 'Titre']]) {
       await vscode.commands.executeCommand('leaveSnippet');
       await editor.edit(edit => edit.replace(new vscode.Range(document.positionAt(0), document.positionAt(document.getText().length)), ''));
       editor.selection = new vscode.Selection(0, 0, 0, 0);
@@ -26,7 +26,7 @@ export async function run(_api: unknown, extension: vscode.Extension<unknown>): 
       assert.ok(name, `Snippet ²${prefix} enregistré`);
       // Choisir le snippet par son nom évite les changements de focus du menu natif au démarrage de VS Code.
       await vscode.commands.executeCommand('editor.action.insertSnippet', { langId: 'typst', name });
-      const opening = `#${functionName}${title ? '([Titre])' : ''}[`;
+      const opening = `#${functionName}${title ? (functionName === 'methode' ? '(title: [Titre])' : '([Titre])') : ''}[`;
       const compact = prefix === 'slides-only' && snippets[name].body.length === 2;
       assert.equal(document.getText(), compact ? `${opening}]\n` : `${opening}\n  \n]\n`);
       if (title) {

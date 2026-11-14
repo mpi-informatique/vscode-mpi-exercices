@@ -234,6 +234,26 @@
     ],
     "description": "Algorithme encadré (bibliothèque MPI) ; titre au format « Nom 2 : Titre »"
   },
+  "MPI — Méthode": {
+    "prefix": "²methode",
+    "body": [
+      "#methode[",
+      "  ${1:${TM_SELECTED_TEXT}}",
+      "]",
+      "$0"
+    ],
+    "description": "Méthode sans numéro avec double barre latérale ; importer methode depuis theoremes"
+  },
+  "MPI — Méthode avec titre": {
+    "prefix": "²methode-titre",
+    "body": [
+      "#methode(title: [${1:Titre}])[",
+      "  ${2:${TM_SELECTED_TEXT}}",
+      "]",
+      "$0"
+    ],
+    "description": "Méthode sans numéro avec titre facultatif et double barre latérale ; importer methode depuis theoremes"
+  },
   "MPI — Exercice et solution de cours": {
     "prefix": "²exsol",
     "body": [
