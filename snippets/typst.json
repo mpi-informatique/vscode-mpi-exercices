@@ -19,6 +19,11 @@
     "body": "#lien(\"${1}\")[${2:${TM_SELECTED_TEXT}}]$0",
     "description": "Lien bleu vers une ressource publique ; suggestions dans les guillemets, puis Tab pour le texte"
   },
+  "MPI — Fichier à télécharger": {
+    "prefix": "²telecharger",
+    "body": "#telecharger(\"${1:url}\")[${2:${TM_SELECTED_TEXT}}]$0",
+    "description": "Lien vers un fichier à télécharger avec un petit symbole ; importer telecharger depuis /load.typ"
+  },
   "MPI — solution": {
     "prefix": "²solution",
     "body": [
