@@ -364,6 +364,16 @@
     "body": "#underline[Attention] : $0",
     "description": "Attention en ligne avec titre souligné"
   },
+  "MPI — Paragraphe avec trait": {
+    "prefix": "²paragraphe",
+    "body": [
+      "#paragraphe([${1|Exemple,Remarque,Attention,Intuitivement|}], trait: true)[",
+      "  ${2:${TM_SELECTED_TEXT}}",
+      "]",
+      "$0"
+    ],
+    "description": "Passage à titre souligné avec le trait vertical des solutions en A4 ; importer paragraphe depuis /load.typ"
+  },
   "MPI — Colonnes du cours": {
     "prefix": "²colonnes-cours",
     "body": [
