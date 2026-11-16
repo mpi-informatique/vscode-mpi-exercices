@@ -380,6 +380,18 @@
     ],
     "description": "Deux colonnes dans le cours, contenus à la suite dans la présentation (bibliothèque MPI)"
   },
+  "MPI — Tableau": {
+    "prefix": "²tableau",
+    "body": [
+      "#tableau(",
+      "  columns: (auto, 1fr),",
+      "  table.header([*${1:Nom}*], [*${2:Valeur}*]),",
+      "  [${3}], [${4}],",
+      ")",
+      "$0"
+    ],
+    "description": "Tableau à en-tête bleu pâle et première colonne grisée ; importer tableau depuis /load.typ"
+  },
   "MPI — Formules réparties": {
     "prefix": "²formules-reparties",
     "body": [
