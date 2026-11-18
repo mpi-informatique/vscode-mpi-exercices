@@ -6,7 +6,7 @@ import { Filters, Variant, facets, labels, matches, parseCatalogue, pdfTarget, p
 import { identify, sourceExclusions, typeLabels, typeLabel } from './documents';
 import { Bank, Runner } from './runner';
 import { Previews } from './preview';
-import { CurrentFile, reveal } from './outline';
+import { CurrentFile, goToQuestion, reveal } from './outline';
 import { BankEntry, newExercise, newSheet, selectBank, documentTemplates } from './authoring';
 import { Browser, BrowserNode, Source } from './browser';
 import { isFolder } from './tree';
@@ -372,6 +372,13 @@ export async function activate(context: vscode.ExtensionContext) {
   register('compileBoth', async (argument?: BrowserNode | vscode.Uri) => { const source = await chooseSource(argument); if (source) await compile(source); });
   register('output', () => runner.output.show(true));
   register('sync', () => previews.sync());
+  register('goToQuestion', async (number?: string) => {
+    const preview = [...previews.entries.values()].find(entry => entry.panel.active);
+    const scan = [...previews.scans.entries].find(([, panel]) => panel.active);
+    const uri = preview ? vscode.Uri.file(path.join(preview.bank.root, preview.source)) : scan ? vscode.Uri.file(scan[0]) : currentFile.uri;
+    if (!uri?.path.endsWith('.typ')) throw new Error('Ouvrez une copie ou un fichier Typst contenant des questions.');
+    await goToQuestion(uri, number);
+  });
   register('reveal', reveal);
   register('toggleLibrary', () => library.toggle()); register('toggleSheets', () => sheets.toggle());
   register('newSheet', async (argument?: Location) => { await discovery; const bank = argument?.bank ?? await selectBank(banks); const uri = await newSheet(bank, argument?.bank ? argument.source : undefined); await scan(bank, sheets); const source = sheets.entries.find(item => path.join(bank.root, item.source) === uri.fsPath); if (source) { await revealSheet(source); } });

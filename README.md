@@ -106,6 +106,8 @@ Pour une copie, le bouton **Afficher le scan à côté** est disponible dans l�
 
 Pour une copie, l’en-tête **Fichier** propose aussi **Énoncé du sujet** (document indiqué dans `donnees.feuille`, dans les banques ouvertes) et **Énoncé de la copie** (version annotée de l’élève). Ces boutons gardent la copie comme document courant lorsque l’aperçu a le focus.
 
+**Aller à la question…** (`⌥⌘Q` sur Mac, `Ctrl+Alt+Q` sur Windows/Linux) place le curseur dans la source. Saisir `15` ou, dans une copie à plusieurs exercices, `2.15` pour préciser l’exercice. Pour une copie, la commande rejoint les questions saisies dans `evaluations`. Elle est aussi accessible depuis la palette de commandes.
+
 Dans un éditeur Typst ou une liste du panneau, hors des champs de saisie :
 
 | Touche | Seule | Avec Maj |

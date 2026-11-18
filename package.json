@@ -213,6 +213,11 @@
         "category": "Exercices MPI"
       },
       {
+        "command": "mpiExercices.goToQuestion",
+        "title": "Aller à la question…",
+        "category": "Exercices MPI"
+      },
+      {
         "command": "mpiExercices.output",
         "title": "Afficher le journal de compilation",
         "category": "Exercices MPI",
@@ -635,6 +640,12 @@
       }
     },
     "keybindings": [
+      {
+        "command": "mpiExercices.goToQuestion",
+        "key": "ctrl+alt+q",
+        "mac": "cmd+alt+q",
+        "when": "(editorTextFocus && resourceExtname == .typ) || (!inputFocus && focusedView == mpiExercices.current)"
+      },
       {
         "command": "mpiExercices.search",
         "key": "f2",

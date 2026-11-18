@@ -19,6 +19,21 @@ export async function run(_api: any, _extension?: unknown): Promise<void> {
   const bank = process.env.MPI_EXERCICES_ROOT!;
   const runner = new Runner();
   try {
+    const exerciseEditor = await vscode.window.showTextDocument(vscode.Uri.file(file));
+    await vscode.commands.executeCommand('mpiExercices.goToQuestion', '1');
+    assert.match(exerciseEditor.document.lineAt(exerciseEditor.selection.active.line).text, /\bquestion(?:\(|\[)/);
+    const copyFile = path.join(temporary, 'copie-fictive.typ');
+    await writeFile(copyFile, `#show: feuille.with(type: "copie")
+#let donnees = (evaluations: (
+  "1.1": (reponse: "Une réponse."),
+  "2.1": (reponse: "Autre réponse."),
+  "2.15": (reponse: "Dernière réponse."),
+))`);
+    const copyEditor = await vscode.window.showTextDocument(vscode.Uri.file(copyFile));
+    for (const [input, key] of [['15', '2.15'], ['2.1', '2.1']] as const) {
+      await vscode.commands.executeCommand('mpiExercices.goToQuestion', input);
+      assert.equal(copyEditor.document.offsetAt(copyEditor.selection.active), copyEditor.document.getText().indexOf(`"${key}"`));
+    }
     await codeAccess(previewBank, _api);
     const entries = [{ bank: previewBank, ex: {
       ...sourceMetadata(generated, relative), titre: 'Automates et monoïdes', concours: { nom: 'ENS' },

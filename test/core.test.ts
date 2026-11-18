@@ -3,7 +3,7 @@ import { searchPriority } from '../src/search-order';
 import assert from 'node:assert/strict';
 import { identify } from '../src/documents';
 import { Exercise, executionCommand, matches, parseCatalogue, parseDiagnostics, pdfTarget, pdfFilename, previewArguments, variantLabels } from '../src/core';
-import { exerciseFromTemplate, sheetFromTemplate, outline, vocabulary, mask } from '../src/typst';
+import { copyQuestions, exerciseFromTemplate, sheetFromTemplate, outline, vocabulary, mask } from '../src/typst';
 import { hierarchy, isFolder } from '../src/tree';
 import { sheetList, editSheet, sourceMetadata } from '../src/sheet-model';
 import { bridgeHtml } from '../src/preview-bridge';
@@ -191,6 +191,18 @@ test('copies : lire le chemin du sujet sans confondre commentaires et chaînes',
   assert.equal(copySubject('// feuille: "faux.typ"\n#let donnees = (feuille: "devoirs/sujet.typ",)'), 'devoirs/sujet.typ');
   assert.equal(copySubject('#let texte = "feuille: faux.typ"'), undefined);
   for (const source of ['../secret.typ', '/secret.typ', 'https://exemple.fr/sujet.typ', 'scan.pdf']) assert.equal(copySubject(`feuille: ${JSON.stringify(source)}`), undefined);
+});
+
+test('copies : repérer les clés des questions au premier niveau des évaluations', () => {
+  const text = `// evaluations: ("1.8": ())
+#let donnees = (evaluations : (
+  "1.2": (reponse: "Fausse clé \\"1.9\\": (", nested: ("1.7": ())),
+  // "1.3": (reponse: "Non saisie"),
+  "2.2": (reponse: "Une autre réponse"), "2.15": (reponse: "La dernière"),
+))
+#let autres = ("3.1": ())`;
+  assert.deepEqual(copyQuestions(text).map(question => question.number), ['1.2', '2.2', '2.15']);
+  assert.equal(copyQuestions(text).at(-1)?.offset, text.indexOf('"2.15"'));
 });
 
 test('copies : lire les CSV du DS, gérer le BOM et les fichiers absents', async () => {

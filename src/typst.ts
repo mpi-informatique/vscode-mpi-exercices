@@ -180,6 +180,25 @@ export function vocabulary(text: string, name: string): string[] {
   return [...clean.slice(start, end).matchAll(/"([^"\n]+)"/g)].map(match => match[1]);
 }
 
+export function copyQuestions(text: string): { number: string; offset: number }[] {
+  const code = mask(text);
+  const evaluations = /\bevaluations\s*:\s*\(/.exec(code);
+  if (!evaluations) return [];
+  const start = evaluations.index + evaluations[0].length;
+  const end = closing(code, start - 1);
+  const source = mask(text, false);
+  const entries = /"(\d+\.\d+)"\s*:\s*\(|[([{]/g;
+  entries.lastIndex = start;
+  const questions = [];
+  for (let match = entries.exec(source); match && match.index < end; match = entries.exec(source)) {
+    const open = entries.lastIndex - 1;
+    if (code[open] !== source[open]) continue;
+    if (match[1]) questions.push({ number: match[1], offset: match.index });
+    entries.lastIndex = closing(code, open);
+  }
+  return questions;
+}
+
 export interface NewExercise { title: string; chapters: string[]; algorithms: string[]; structures: string[]; languages: string[]; levels: string[]; difficulty: number; minutes: number | null }
 export function exerciseFromTemplate(template: string, data: NewExercise): string {
   const fields: Record<string, string> = {

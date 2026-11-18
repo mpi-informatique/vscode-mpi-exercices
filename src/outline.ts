@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'node:path';
-import { outline, OutlineItem, mask } from './typst';
+import { copyQuestions, outline, OutlineItem, mask } from './typst';
 import { Sheets, SheetMember, memberItem } from './sheets';
 import { identify } from './documents';
 
@@ -60,9 +60,47 @@ export class CurrentFile implements vscode.TreeDataProvider<Node>, vscode.Dispos
   dispose(): void { this.emitter.dispose(); for (const sub of this.subscriptions) sub.dispose(); }
 }
 
-export async function reveal(uri: vscode.Uri, line = 0): Promise<void> {
-  const editor = await vscode.window.showTextDocument(uri, { viewColumn: vscode.ViewColumn.One });
-  const position = new vscode.Position(Math.min(line, editor.document.lineCount - 1), 0);
+type Question = { number: string; position: vscode.Position };
+
+function outlineQuestions(items: OutlineItem[]): Question[] {
+  return items.flatMap(item => item.kind === 'question'
+    ? [{ number: item.title.split('.', 1)[0], position: new vscode.Position(item.line, 0) }]
+    : outlineQuestions(item.children ?? []));
+}
+
+export async function goToQuestion(uri: vscode.Uri, number?: string): Promise<void> {
+  const document = await vscode.workspace.openTextDocument(uri);
+  const isCopy = identify(document.getText(), uri.path)?.type === 'copie';
+  const questions = () => isCopy
+    ? copyQuestions(document.getText()).map(({ number, offset }) => ({ number, position: document.positionAt(offset) }))
+    : outlineQuestions(outline(document.getText()));
+  if (!questions().length) throw new Error(isCopy ? 'Cette copie ne contient aucune question saisie.' : 'Ce fichier ne contient aucune question numérotée.');
+  const locate = (input: string): Question | string => {
+    const wanted = input.trim().replace(/^q\s*/i, '');
+    if (!/^\d+(?:\.\d+)?$/.test(wanted)) return 'Saisissez un numéro de question, par exemple 15 ou 1.15.';
+    const matches = questions().filter(({ number }) => number === wanted || number.split('.').at(-1) === wanted);
+    if (matches.length === 1) return matches[0];
+    if (matches.length > 1) return `Précisez l’exercice (${matches.map(match => match.number).join(', ')}).`;
+    return isCopy ? `La question ${wanted} n’a pas été saisie dans cette copie.` : `Question ${wanted} introuvable dans ce fichier.`;
+  };
+  const value = number ?? await vscode.window.showInputBox({
+    title: 'Aller à la question',
+    placeHolder: isCopy ? '15 ou 1.15' : '15',
+    validateInput: input => {
+      const match = locate(input);
+      return typeof match === 'string' && input.trim() ? match : undefined;
+    }
+  });
+  if (!value?.trim()) return;
+  const match = locate(value);
+  if (typeof match === 'string') throw new Error(match);
+  await reveal(uri, match.position.line, match.position.character);
+}
+
+export async function reveal(uri: vscode.Uri, line = 0, character = 0): Promise<void> {
+  const viewColumn = vscode.window.visibleTextEditors.find(editor => editor.document.uri.toString() === uri.toString())?.viewColumn ?? vscode.ViewColumn.One;
+  const editor = await vscode.window.showTextDocument(uri, { viewColumn });
+  const position = editor.document.validatePosition(new vscode.Position(line, character));
   editor.selection = new vscode.Selection(position, position);
   editor.revealRange(new vscode.Range(position, position), vscode.TextEditorRevealType.InCenterIfOutsideViewport);
   await vscode.commands.executeCommand('mpiExercices.sync');
