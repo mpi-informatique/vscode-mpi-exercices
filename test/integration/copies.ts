@@ -122,14 +122,41 @@ export async function run(api: any, extension: vscode.Extension<any>): Promise<v
     const scan = previews.scans.entries.get(key)!;
     let rendered = false;
     let pages = 0;
+    let layout: { before: number; after: number; gutter: number; scrollable: boolean; firstCanvasKept: boolean } | undefined;
     const errors: string[] = [];
     const scanListener = scan.webview.onDidReceiveMessage(message => {
       if (message.type === 'pdfReady') rendered = true;
       if (message.type === 'pageProgress') pages = message.total;
+      if (message.type === 'scanLayoutTest') layout = message;
       if (['pdfError', 'clientError'].includes(message.type)) errors.push(message.error);
     });
-    await until(() => rendered && pages > 0, 'Le scan est rendu et paginé dans VS Code');
+    const scanHtml = scan.webview.html;
+    const scanNonce = /<script nonce="([^"]+)"/.exec(scanHtml)![1];
+    // Reproduire un volet qui prend de la place pour afficher sa barre de défilement.
+    scan.webview.html = scanHtml.replace('</head>', `<style>
+      #viewers { max-height: 150px; scrollbar-width: auto; scrollbar-color: auto; }
+      #viewers::-webkit-scrollbar { width: 18px; }
+    </style></head>`).replace('<script nonce=', `<script nonce="${scanNonce}">
+      const testApi = acquireVsCodeApi();
+      const host = document.getElementById('viewers');
+      let before, firstCanvas;
+      window.acquireVsCodeApi = () => ({ ...testApi, postMessage(message) {
+        if (message.type === 'ready') before = host.clientWidth;
+        if (message.type === 'pdfReady' && !firstCanvas) {
+          firstCanvas = host.querySelector('canvas');
+          const after = host.clientWidth;
+          const gutter = host.offsetWidth - after;
+          const scrollable = host.scrollHeight > host.clientHeight;
+          setTimeout(() => testApi.postMessage({ type: 'scanLayoutTest', before, after, gutter, scrollable, firstCanvasKept: firstCanvas.isConnected }), 500);
+        }
+        testApi.postMessage(message);
+      } });
+    </script><script nonce=`);
+    await until(() => rendered && pages > 0 && !!layout, 'Le scan est rendu et paginé dans VS Code');
     assert.deepEqual(errors, []);
+    assert.ok(layout!.scrollable && layout!.gutter > 0, 'Le scan déborde et la barre de défilement occupe de la place');
+    assert.equal(layout!.after, layout!.before, 'La barre de défilement ne change pas la largeur du rendu');
+    assert.ok(layout!.firstCanvasKept, 'Le premier rendu du scan reste affiché');
     assert.equal(scan.viewColumn, preview.panel.viewColumn! + 1, 'Le scan est placé à côté de la correction');
     assert.equal(await previews.scans.open(project, source, preview.panel.viewColumn), scan, 'Un second clic réutilise le volet');
     scanListener.dispose();
