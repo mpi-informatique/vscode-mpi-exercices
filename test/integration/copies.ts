@@ -7,7 +7,7 @@ import { Runner } from '../../src/runner';
 import { contestFromTemplate, exerciseFromTemplate } from '../../src/typst';
 import { documentTemplates } from '../../src/authoring';
 import { identify } from '../../src/documents';
-import { until } from './helpers';
+import { pdfTextPosition, until } from './helpers';
 import { copyInputs } from '../../src/copy-inputs';
 import { Previews } from '../../src/preview';
 import { environment, libraryRoot } from '../../src/environment';
@@ -26,7 +26,8 @@ export async function run(api: any, extension: vscode.Extension<any>): Promise<v
     const source = 'corrections/2026/ds/test/copies/exemple.typ';
     await mkdir(path.dirname(path.join(temporary, source)), { recursive: true });
     const template = await readFile(path.join(temporary, 'templates/copie.typ'), 'utf8');
-    const document = contestFromTemplate(template, 'Copie fictive').replace('evaluations: (:),', 'evaluations: ("1.1": (reponse: "Réponse fictive.", raisonnement: "À corriger.", reussite: none),),');
+    const comment = 'Commentaire fictif.';
+    const document = contestFromTemplate(template, 'Copie fictive').replace('evaluations: (:),', `evaluations: ("1.1": (reponse: "Réponse fictive.", raisonnement: "À corriger.", commentaire: "${comment}", reussite: none),),`);
     assert.equal(identify(document)?.type, 'copie');
     await writeFile(path.join(temporary, source), document);
     await writeFile(path.join(temporary, 'corrections/2026/liste-classe.csv'), 'MPI;Nom;Prénom\n');
@@ -74,11 +75,28 @@ export async function run(api: any, extension: vscode.Extension<any>): Promise<v
     assert.equal(api.previewCount(), 2, 'Le bouton du sujet ouvre un document distinct, même depuis l’aperçu');
     const tabs = vscode.window.tabGroups.all.flatMap(group => group.tabs).filter(tab => tab.input instanceof vscode.TabInputWebview && tab.input.viewType.includes('mpiExercices.pdf'));
     await vscode.window.tabGroups.close(tabs);
+    const restore = new vscode.WorkspaceEdit();
+    restore.replace(editor.document.uri, new vscode.Range(0, 0, editor.document.lineCount, 0), document);
+    await vscode.workspace.applyEdit(restore);
     const scanFile = path.join(temporary, 'corrections/2026/ds/test/tmp/usb-images/Exémple.PDF');
     await mkdir(path.dirname(scanFile), { recursive: true });
     await cp(path.join(temporary, 'build/corrections/2026/ds/test/copies/exemple/exemple.pdf'), scanFile);
     const preview = await previews.open(project, source, 'enonce');
     assert.ok(preview.native);
+    const session = preview.sessions.get('enonce')!;
+    const position = await pdfTextPosition(await session.exportPdf(), comment);
+    const activeCopy = await vscode.window.showTextDocument(editor.document);
+    const selection = new vscode.Selection(10, 2, 10, 2);
+    activeCopy.selection = selection;
+    preview.panel.reveal(preview.panel.viewColumn);
+    await until(() => preview.panel.active, 'L’aperçu de la copie a le focus');
+    const socket = new WebSocket(`ws://127.0.0.1:${session.port}`);
+    try {
+      await until(() => socket.readyState === WebSocket.OPEN, 'Connexion au rendu de la copie');
+      socket.send(`src-point ${JSON.stringify(position)}`);
+      await until(() => !preview.panel.active && vscode.window.activeTextEditor?.document === editor.document, 'Le clic sur le commentaire revient à la copie');
+      assert.ok(vscode.window.activeTextEditor!.selection.isEqual(selection), 'Le curseur de la copie est conservé');
+    } finally { socket.close(); }
     // Cliquer le vrai bouton du lecteur, sans dépendre d'une copie nominative.
     let scanButton = false;
     const buttonListener = preview.panel.webview.onDidReceiveMessage(message => { if (message.type === 'scanButtonTest') scanButton = message.visible; });

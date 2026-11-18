@@ -35,10 +35,14 @@ export async function until(condition: () => boolean | Promise<boolean>, message
   throw new Error(message);
 }
 
-export async function pdfText(data: Uint8Array): Promise<string> {
+async function loadPdf(data: Uint8Array) {
   const { getDocument, GlobalWorkerOptions } = await import(pathToFileURL(require.resolve('pdfjs-dist/legacy/build/pdf.mjs')).href);
   GlobalWorkerOptions.workerSrc = pathToFileURL(require.resolve('pdfjs-dist/legacy/build/pdf.worker.mjs')).href;
-  const loading = getDocument({ data: Uint8Array.from(data) });
+  return getDocument({ data: Uint8Array.from(data) });
+}
+
+export async function pdfText(data: Uint8Array): Promise<string> {
+  const loading = await loadPdf(data);
   const pdf = await loading.promise;
   try {
     const pages: string[] = [];
@@ -47,5 +51,22 @@ export async function pdfText(data: Uint8Array): Promise<string> {
       pages.push(items.map((item: { str?: string }) => item.str ?? '').join(' '));
     }
     return pages.join('\n');
+  } finally { await loading.destroy(); }
+}
+
+export async function pdfTextPosition(data: Uint8Array, text: string) {
+  const loading = await loadPdf(data);
+  try {
+    const pdf = await loading.promise;
+    for (let n = 1; n <= pdf.numPages; n++) {
+      const page = await pdf.getPage(n);
+      const { items } = await page.getTextContent();
+      for (const item of items) {
+        if (!('str' in item) || item.str !== text) continue;
+        const [, , , , x, y] = item.transform;
+        return { page_no: n, x: x + item.width / 2, y: page.view[3] - y - item.height / 3 };
+      }
+    }
+    throw new Error(`Texte introuvable dans le PDF : ${text}`);
   } finally { await loading.destroy(); }
 }

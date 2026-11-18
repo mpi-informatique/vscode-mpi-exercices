@@ -80,23 +80,31 @@ export async function start(bank: Bank, source: string, variant: Variant, option
     diagnosticValues.set(params.uri, values);
     if (!options.background) diagnostics.set(vscode.Uri.parse(params.uri), values);
   });
+  const copyTemplate = info?.type === 'copie' ? path.join(bank.root, 'lib', 'copie.typ') : undefined;
   const showSource = async (jump: { filepath: string; start: [number, number] | null; end: [number, number] | null }) => {
-    if (options.background || options.canJump?.() === false || !jump.start || !jump.end || !path.resolve(jump.filepath).startsWith(bank.root + path.sep)) return;
+    const target = path.resolve(jump.filepath);
+    if (stopped || options.background || options.canJump?.() === false || !target.startsWith(bank.root + path.sep)) return false;
+    // Rendered copy data can carry a span in the shared template. Keep the copy's cursor in that case.
+    const fromCopyTemplate = target === copyTemplate;
+    if (!fromCopyTemplate && (!jump.start || !jump.end)) return false;
     try {
-      const uri = vscode.Uri.file(jump.filepath);
+      const uri = fromCopyTemplate ? document.uri : vscode.Uri.file(target);
       const column = vscode.window.visibleTextEditors.find(editor => editor.document.uri.toString() === uri.toString())?.viewColumn ?? vscode.ViewColumn.One;
       const editor = await vscode.window.showTextDocument(uri, { viewColumn: column });
-      editor.selection = new vscode.Selection(...jump.start, ...jump.end);
-      editor.revealRange(editor.selection, vscode.TextEditorRevealType.InCenterIfOutsideViewport);
-    } catch (error) { output.appendLine(String(error)); }
+      if (!fromCopyTemplate && jump.start && jump.end) {
+        editor.selection = new vscode.Selection(...jump.start, ...jump.end);
+        editor.revealRange(editor.selection, vscode.TextEditorRevealType.InCenterIfOutsideViewport);
+      }
+      return true;
+    } catch (error) { if (!stopped) output.appendLine(String(error)); return false; }
   };
   connection.onNotification('tinymist/preview/scrollSource', showSource);
   connection.onRequest('window/showDocument', async (request: { uri: string; selection?: { start: { line: number; character: number }; end: { line: number; character: number } } }) => {
     const uri = vscode.Uri.parse(request.uri);
-    if (options.background || options.canJump?.() === false || uri.scheme !== 'file' || !uri.fsPath.startsWith(bank.root + path.sep)) return { success: false };
+    if (uri.scheme !== 'file') return { success: false };
     const { start, end } = request.selection ?? { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } };
-    await showSource({ filepath: uri.fsPath, start: [start.line, start.character], end: [end.line, end.character] });
-    return { success: true };
+    const success = await showSource({ filepath: uri.fsPath, start: [start.line, start.character], end: [end.line, end.character] });
+    return { success };
   });
   connection.listen();
   try {
