@@ -84,18 +84,22 @@ export async function run(api: any, extension: vscode.Extension<any>): Promise<v
     const preview = await previews.open(project, source, 'enonce');
     assert.ok(preview.native);
     const session = preview.sessions.get('enonce')!;
-    const position = await pdfTextPosition(await session.exportPdf(), comment);
+    const pdf = await session.exportPdf();
     const activeCopy = await vscode.window.showTextDocument(editor.document);
-    const selection = new vscode.Selection(10, 2, 10, 2);
-    activeCopy.selection = selection;
-    preview.panel.reveal(preview.panel.viewColumn);
-    await until(() => preview.panel.active, 'L’aperçu de la copie a le focus');
     const socket = new WebSocket(`ws://127.0.0.1:${session.port}`);
     try {
       await until(() => socket.readyState === WebSocket.OPEN, 'Connexion au rendu de la copie');
-      socket.send(`src-point ${JSON.stringify(position)}`);
-      await until(() => !preview.panel.active && vscode.window.activeTextEditor?.document === editor.document, 'Le clic sur le commentaire revient à la copie');
-      assert.ok(vscode.window.activeTextEditor!.selection.isEqual(selection), 'Le curseur de la copie est conservé');
+      for (const [field, value] of [['commentaire', comment], ['reponse', 'Réponse fictive.']]) {
+        const position = await pdfTextPosition(pdf, value);
+        const offset = editor.document.getText().indexOf(`${field}: "`);
+        const expected = editor.document.positionAt(offset);
+        activeCopy.selection = new vscode.Selection(10, 2, 10, 2);
+        preview.panel.reveal(preview.panel.viewColumn);
+        await until(() => preview.panel.active, 'L’aperçu de la copie a le focus');
+        socket.send(`src-point ${JSON.stringify(position)}`);
+        await until(() => !preview.panel.active && vscode.window.activeTextEditor?.document === editor.document, 'Le clic revient à la copie');
+        assert.ok(vscode.window.activeTextEditor!.selection.start.isEqual(expected), `Le clic rejoint le champ ${field}`);
+      }
     } finally { socket.close(); }
     // Cliquer le vrai bouton du lecteur, sans dépendre d'une copie nominative.
     let scanButton = false;

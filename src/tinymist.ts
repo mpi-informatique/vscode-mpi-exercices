@@ -11,9 +11,10 @@ import { errorStatus } from './errors';
 import { identify } from './documents';
 import { copyInputs } from './copy-inputs';
 import { environment } from './environment';
+import { copyPreviewSource } from './typst';
 
 export interface SessionOptions { signal?: AbortSignal; dark?: boolean; background?: boolean; canJump?: () => boolean; onError?: (message: string) => void }
-export interface Session { id: string; url: string; port: number; connection: MessageConnection; readonly alive: boolean; exportPdf(): Promise<Uint8Array>; attach(options: SessionOptions): void; dispose(): void }
+export interface Session { id: string; url: string; port: number; connection: MessageConnection; readonly alive: boolean; exportPdf(): Promise<Uint8Array>; previewPosition(document: vscode.TextDocument, position: vscode.Position): [number, number]; attach(options: SessionOptions): void; dispose(): void }
 
 // Tinymist's shared LSP ignores per-preview root/inputs. An isolated LSP
 // context reuses its installed engine without changing the user's settings.
@@ -43,6 +44,15 @@ export async function start(bank: Bank, source: string, variant: Variant, option
   const diagnostics = vscode.languages.createDiagnosticCollection(id);
   const errors = new Map<string, string[]>();
   const diagnosticValues = new Map<string, vscode.Diagnostic[]>();
+  let copySource: ReturnType<typeof copyPreviewSource> | undefined;
+  const previewText = (doc: vscode.TextDocument) => {
+    const text = doc.getText();
+    if (info?.type !== 'copie' || doc !== document) return text;
+    copySource = copyPreviewSource(text);
+    return copySource.text;
+  };
+  const sourcePosition = (uri: string, position: [number, number]): [number, number] =>
+    uri === document.uri.toString() && copySource ? copySource.source(...position) : position;
   let alive = true;
   let quietUntil = 0;
   let errorTimer: ReturnType<typeof setTimeout> | undefined;
@@ -76,7 +86,10 @@ export async function start(bank: Bank, source: string, variant: Variant, option
     if (stopped) return;
     errors.set(params.uri, params.diagnostics.filter(d => (d.severity ?? 1) === 1).map(d => `${path.relative(bank.root, vscode.Uri.parse(params.uri).fsPath)}:${d.range.start.line + 1} : ${d.message}`));
     publishErrors();
-    const values = params.diagnostics.map(d => new vscode.Diagnostic(new vscode.Range(d.range.start.line, d.range.start.character, d.range.end.line, d.range.end.character), d.message, (d.severity ?? 1) - 1));
+    const values = params.diagnostics.map(d => new vscode.Diagnostic(new vscode.Range(
+      ...sourcePosition(params.uri, [d.range.start.line, d.range.start.character]),
+      ...sourcePosition(params.uri, [d.range.end.line, d.range.end.character]),
+    ), d.message, (d.severity ?? 1) - 1));
     diagnosticValues.set(params.uri, values);
     if (!options.background) diagnostics.set(vscode.Uri.parse(params.uri), values);
   });
@@ -92,7 +105,7 @@ export async function start(bank: Bank, source: string, variant: Variant, option
       const column = vscode.window.visibleTextEditors.find(editor => editor.document.uri.toString() === uri.toString())?.viewColumn ?? vscode.ViewColumn.One;
       const editor = await vscode.window.showTextDocument(uri, { viewColumn: column });
       if (!fromCopyTemplate && jump.start && jump.end) {
-        editor.selection = new vscode.Selection(...jump.start, ...jump.end);
+        editor.selection = new vscode.Selection(...sourcePosition(uri.toString(), jump.start), ...sourcePosition(uri.toString(), jump.end));
         editor.revealRange(editor.selection, vscode.TextEditorRevealType.InCenterIfOutsideViewport);
       }
       return true;
@@ -117,7 +130,7 @@ export async function start(bank: Bank, source: string, variant: Variant, option
     const open = (doc: vscode.TextDocument) => {
       if (!belongs(doc) || opened.has(doc.uri.toString())) return;
       opened.add(doc.uri.toString());
-      notify('textDocument/didOpen', { textDocument: { uri: doc.uri.toString(), languageId: 'typst', version: doc.version, text: doc.getText() } });
+      notify('textDocument/didOpen', { textDocument: { uri: doc.uri.toString(), languageId: 'typst', version: doc.version, text: previewText(doc) } });
     };
     // The catalogue opens clean documents for metadata. Mirroring all of them
     // makes each isolated LSP compile the entire bank before showing its preview.
@@ -129,7 +142,7 @@ export async function start(bank: Bank, source: string, variant: Variant, option
         quietUntil = Date.now() + 2000;
         errorStatus.clear(id); options.onError?.('');
         publishErrors();
-        open(event.document); notify('textDocument/didChange', { textDocument: { uri: event.document.uri.toString(), version: event.document.version }, contentChanges: [{ text: event.document.getText() }] });
+        open(event.document); notify('textDocument/didChange', { textDocument: { uri: event.document.uri.toString(), version: event.document.version }, contentChanges: [{ text: previewText(event.document) }] });
       } }),
       vscode.workspace.onDidCloseTextDocument(doc => { if (opened.delete(doc.uri.toString())) notify('textDocument/didClose', { textDocument: { uri: doc.uri.toString() } }); }));
     const result = await connection.sendRequest<{ staticServerPort: number }>('workspace/executeCommand', {
@@ -143,6 +156,9 @@ export async function start(bank: Bank, source: string, variant: Variant, option
     const uri = await vscode.env.asExternalUri(vscode.Uri.parse(page.url));
     options.signal?.throwIfAborted();
     return { id, port, url: uri.toString(), connection, get alive() { return alive; }, dispose,
+      previewPosition(doc, position) {
+        return doc === document && copySource ? copySource.preview(position.line, position.character) : [position.line, position.character];
+      },
       async exportPdf() {
         // Export the session's entry (the wrapper for an exercise), with its inputs and unsaved buffers.
         const result = await connection.sendRequest<{ data?: string } | null>('workspace/executeCommand', {
@@ -166,8 +182,9 @@ export async function start(bank: Bank, source: string, variant: Variant, option
 export async function stop(session: Session): Promise<void> { session.dispose(); }
 
 export async function forward(session: Session, editor: vscode.TextEditor): Promise<void> {
+  const [line, character] = session.previewPosition(editor.document, editor.selection.active);
   await session.connection.sendRequest('workspace/executeCommand', { command: 'tinymist.scrollPreview', arguments: [session.id, {
     event: 'panelScrollTo', filepath: editor.document.uri.fsPath,
-    line: editor.selection.active.line, character: editor.selection.active.character
+    line, character
   }] });
 }

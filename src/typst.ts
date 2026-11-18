@@ -55,6 +55,62 @@ function closing(code: string, start: number): number {
   }
   return code.length;
 }
+
+// eval uses the span of its argument. Give each rendered field an eval
+// located next to that field in the preview's in-memory source.
+export function copyPreviewSource(text: string) {
+  const code = mask(text);
+  const evaluations = /\bevaluations:\s*\(/.exec(code);
+  const insertions = new Map<number, { column: number; prefix: string }[]>();
+  let rendered = text;
+  if (evaluations) {
+    const start = evaluations.index + evaluations[0].length;
+    const end = closing(code, start - 1);
+    // Each dictionary entry of evaluations is a numbered question's tuple.
+    const entries = /:\s*\(/g;
+    const area = code.slice(start, end);
+    const edits: { offset: number; prefix: string }[] = [];
+    for (let entry = entries.exec(area); entry; entry = entries.exec(area)) {
+      const open = start + entries.lastIndex - 1;
+      const close = closing(code, open);
+      entries.lastIndex = close - start;
+      const record = code.slice(open + 1, close - 1);
+      const fields = /[([{]|\b(reponse|commentaire)\s*:/g;
+      for (let field = fields.exec(record); field; field = fields.exec(record)) {
+        if (!field[1]) {
+          fields.lastIndex = closing(record, field.index);
+          continue;
+        }
+        const offset = open + 1 + field.index;
+        const prefix = `rendu-${field[1]}: it => eval(it, mode: "markup"), `;
+        const before = text.slice(0, offset);
+        const line = before.split('\n').length - 1;
+        const column = offset - before.lastIndexOf('\n') - 1;
+        const row = insertions.get(line) ?? [];
+        row.push({ column, prefix });
+        insertions.set(line, row);
+        edits.push({ offset, prefix });
+      }
+    }
+    for (const { offset, prefix } of edits.reverse())
+      rendered = rendered.slice(0, offset) + prefix + rendered.slice(offset);
+  }
+  return {
+    text: rendered,
+    source(line: number, character: number): [number, number] {
+      for (const { column, prefix } of insertions.get(line) ?? []) {
+        if (character < column) break;
+        if (character < column + prefix.length) return [line, column];
+        character -= prefix.length;
+      }
+      return [line, character];
+    },
+    preview(line: number, character: number): [number, number] {
+      const extra = (insertions.get(line) ?? []).filter(({ column }) => column <= character).reduce((sum, { prefix }) => sum + prefix.length, 0);
+      return [line, character + extra];
+    },
+  };
+}
 function callBody(code: string, start: number): { body: number; end: number } {
   let cursor = start;
   while (/\s/.test(code[cursor] ?? '') && cursor < code.length) cursor++;
