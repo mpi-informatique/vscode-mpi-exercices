@@ -12,7 +12,7 @@ import { Preparation } from './preparation';
 import { associatedCodes, openAssociatedCode } from './code-files';
 import { pdfViewerHtml } from '@mpi-informatique/exercices-core/pdf-viewer';
 import { scrollbarStyle } from './scrollbars';
-import { Scans } from './scans';
+import { ScanPreview } from './scan-preview';
 
 export interface Preview {
   bank: Bank; source: string; variant: Variant; panel: vscode.WebviewPanel;
@@ -25,12 +25,12 @@ export interface Preview {
   toggleTheme(): Promise<void>;
   select(variant: Variant): Promise<void>;
   restart(): Promise<void>;
+  showScan(): Promise<void>;
 }
 const escape = (text: string) => text.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
 
 export class Previews implements vscode.Disposable {
   readonly entries = new Map<string, Preview>();
-  readonly scans: Scans;
   private readonly subscriptions: vscode.Disposable[] = [];
   private timer?: NodeJS.Timeout;
   private editor = vscode.window.activeTextEditor;
@@ -39,8 +39,6 @@ export class Previews implements vscode.Disposable {
   private disposed = false;
   private preparationEpoch = 0;
   constructor(private readonly context: vscode.ExtensionContext, private readonly exportPdf: (preview: Preview, variant: Variant) => Promise<void>, private readonly hasTinymist = () => !!vscode.extensions.getExtension('myriad-dreamin.tinymist'), private readonly startTinymist = tinymist.start) {
-    this.scans = new Scans(context);
-    this.subscriptions.push(this.scans);
     this.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(editor => { if (editor?.document.uri.path.endsWith('.typ')) this.editor = editor; }), vscode.window.onDidChangeTextEditorSelection(event => {
       const mode = vscode.workspace.getConfiguration('tinymist').get<string>('preview.scrollSync', 'onSelectionChangeByMouse');
       if (mode === 'never' || event.kind === vscode.TextEditorSelectionChangeKind.Command || (mode === 'onSelectionChangeByMouse' && event.kind !== vscode.TextEditorSelectionChangeKind.Mouse)) return;
@@ -114,11 +112,17 @@ export class Previews implements vscode.Disposable {
     }
   }
 
+  async showScan(bank: Bank, source: string): Promise<void> {
+    const preview = this.entries.get(`${bank.root}/${source}`) ?? await this.open(bank, source, 'corrige');
+    preview.panel.reveal(undefined, true);
+    await preview.showScan();
+  }
+
   async open(bank: Bank, source: string, variant: Variant): Promise<Preview> {
     const key = `${bank.root}/${source}`;
+    const document = await vscode.workspace.openTextDocument(vscode.Uri.file(path.join(bank.root, source)));
     const existing = this.entries.get(key);
     if (existing) { existing.panel.reveal(undefined, true); await existing.select(variant); return existing; }
-    const document = await vscode.workspace.openTextDocument(vscode.Uri.file(path.join(bank.root, source)));
     const documentType = identify(document.getText(), source)?.type;
     const labels = variantLabels(documentType);
     const variants = availableVariants(documentType);
@@ -171,8 +175,17 @@ export class Previews implements vscode.Disposable {
       errorStatus.clear('preview');
       await describe();
     };
+    const webview = panel.webview;
+    const uri = (file: string) => escape(webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'dist', 'viewer', file)).toString());
+    const options = {
+      nonce: randomBytes(18).toString('base64'), channel, cspSource: webview.cspSource,
+      pdfjs: webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'dist', 'pdfjs')).toString(),
+      uri, variants, labels, variant, scrollbarStyle, scanPane: documentType === 'copie'
+    };
+    const scan = documentType === 'copie' ? new ScanPreview(bank, source, this.context.workspaceState, post, () => disposed) : undefined;
     const preview: Preview = {
       bank, source, documentType, variant, panel, sessions, native: this.hasTinymist(), jumps: this.hasTinymist(),
+      showScan: async () => { await scan?.show(); },
       toggleJumps: async () => { preview.jumps = preview.native && !preview.jumps; await describe(); },
       toggleTheme: async () => { preview.dark = !isDark(); if (preview.native) await preview.restart(); else await describe(); },
       select: value => enqueue(() => select(value)),
@@ -190,7 +203,7 @@ export class Previews implements vscode.Disposable {
     this.entries.set(key, preview);
     const listener = panel.webview.onDidReceiveMessage(async message => {
       try {
-        if (message?.type === 'ready') { ready = true; await describe(); }
+        if (message?.type === 'ready') { ready = true; await describe(); await scan?.restore(); }
         else if (variants.includes(message?.type)) await preview.select(message.type);
         else if (message?.type === 'jumps') await preview.toggleJumps();
         else if (message?.type === 'theme') await preview.toggleTheme();
@@ -203,7 +216,8 @@ export class Previews implements vscode.Disposable {
           await describe();
         }
         else if (message?.type === 'code') await openAssociatedCode({ bank, source });
-        else if (message?.type === 'scan') await this.scans.open(bank, source, panel.viewColumn);
+        else if (message?.type === 'scan') await scan?.toggle();
+        else if (message?.type === 'scanEvent') await scan?.receive(message.message?.type);
       } catch (error) { if (!disposed) { this.report(error); await post({ type: 'status', message: String(error) }); } }
     });
     panel.onDidDispose(() => {
@@ -212,13 +226,7 @@ export class Previews implements vscode.Disposable {
       for (const session of sessions.values()) void tinymist.stop(session).catch(() => undefined);
       sessions.clear();
     });
-    const webview = panel.webview;
-    const uri = (file: string) => escape(webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'dist', 'viewer', file)).toString());
-    const nonce = randomBytes(18).toString('base64');
-    // Frame URLs originate only from the extension, never from source contents.
-    webview.html = pdfViewerHtml({ nonce, channel, cspSource: webview.cspSource,
-      pdfjs: webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'dist', 'pdfjs')).toString(),
-      uri, variants, labels, variant, scrollbarStyle });
+    webview.html = pdfViewerHtml(options);
     try {
       await preview.select(variant);
       void this.prepare(bank, source).catch(error => { if (!this.disposed) this.fallback.output.appendLine(String(error)); });

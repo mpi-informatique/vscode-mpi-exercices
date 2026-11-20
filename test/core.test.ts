@@ -396,10 +396,13 @@ test('lecteur : raccourcis de variantes et début/fin depuis le PDF, la barre et
   const elements = new Map<string, any>();
   const element = () => ({ dataset: {}, classList: { toggle() {} }, setAttribute() {}, addEventListener() {}, append() {}, remove() {}, contentWindow: { postMessage() {} } });
   const document = {
-    body: { dataset: { channel: 'test' }, classList: { toggle() {} } },
-    getElementById: (id: string) => { if (!elements.has(id)) elements.set(id, element()); return elements.get(id); },
-    createElement: element,
-    querySelectorAll: () => ['enonce', 'corrige', 'presentation'].map(id => ({ id }))
+    body: {
+      dataset: { channel: 'test' },
+      classList: { toggle() {} },
+      querySelectorAll: () => ['enonce', 'corrige', 'presentation'].map(id => ({ id }))
+    },
+    getElementById: (id: string) => { if (id === 'scan-pane') return null; if (!elements.has(id)) elements.set(id, element()); return elements.get(id); },
+    createElement: element
   };
   const window = { addEventListener: (type: string, listener: (event: any) => void) => listeners.set(type, [...listeners.get(type) ?? [], listener]) };
   const context = {
@@ -410,7 +413,10 @@ test('lecteur : raccourcis de variantes et début/fin depuis le PDF, la barre et
     MutationObserver: class { observe() {} },
     ResizeObserver: class { observe() {} }
   };
-  runInNewContext(await readFile(path.join(process.cwd(), 'dist/viewer/viewer.mjs'), 'utf8'), context);
+  const viewerScript = await readFile(path.join(process.cwd(), 'dist/viewer/viewer.mjs'), 'utf8');
+  runInNewContext(viewerScript.replace('let pdfPages = 0;', `let pdfPages = 0;
+    globalThis.setPdfPages = pages => { pdfPages = pages; };
+    globalThis.refreshPdfProgress = updatePdfProgress;`), context);
   const flush = () => { while (queued.length) queued.shift()!(); };
   elements.get('presentation').onclick();
   assert.equal(messages.at(-1).type, 'presentation', 'La troisième variante est sélectionnable');
@@ -505,12 +511,12 @@ test('lecteur : raccourcis de variantes et début/fin depuis le PDF, la barre et
   host.querySelector = (selector: string) => pages[Number(/data-page="(\d+)"/.exec(selector)![1]) - 1];
   host.querySelectorAll = () => pages;
   host.scrollTo = ({ top }: { top: number }) => { host.scrollTop = Math.ceil(top); };
-  runInNewContext('pdfPages = 7', context);
+  runInNewContext('setPdfPages(7)', context);
   dispatch('keydown', { ...key, key: 'End' }); flush();
   elements.get('previous-page').onclick(); flush();
   assert.equal(elements.get('page-number').value, '6', 'Le PDF conserve la page demandée malgré les arrondis et plusieurs slides visibles');
   host.scrollTop = 100.25;
-  runInNewContext('updatePdfProgress()', context);
+  runInNewContext('refreshPdfProgress()', context);
   assert.equal(elements.get('page-number').value, '2', 'Le suivi du défilement manuel reste actif');
   dispatch('keydown', { ...key, key: 'Home' }); flush();
   dispatch('message', { data: { channel: 'test', type: 'reset' } });

@@ -81,6 +81,11 @@ export async function run(api: any, extension: vscode.Extension<any>): Promise<v
     const scanFile = path.join(temporary, 'corrections/2026/ds/test/tmp/usb-images/Exémple.PDF');
     await mkdir(path.dirname(scanFile), { recursive: true });
     await cp(path.join(temporary, 'build/corrections/2026/ds/test/copies/exemple/exemple.pdf'), scanFile);
+    await vscode.commands.executeCommand('mpiExercices.currentScan');
+    assert.equal(api.previewCount(), 1, 'Le bouton Fichier ouvre l’aperçu de la copie pour afficher son scan');
+    const comparison = vscode.window.tabGroups.all.flatMap(group => group.tabs).filter(tab => tab.input instanceof vscode.TabInputWebview && tab.input.viewType.includes('mpiExercices.'));
+    assert.equal(comparison.filter(tab => tab.input instanceof vscode.TabInputWebview && tab.input.viewType.includes('mpiExercices.scan')).length, 0);
+    await vscode.window.tabGroups.close(comparison.filter(tab => tab.input instanceof vscode.TabInputWebview && tab.input.viewType.includes('mpiExercices.pdf')));
     const preview = await previews.open(project, source, 'enonce');
     assert.ok(preview.native);
     const session = preview.sessions.get('enonce')!;
@@ -102,69 +107,70 @@ export async function run(api: any, extension: vscode.Extension<any>): Promise<v
       }
     } finally { socket.close(); }
     // Cliquer le vrai bouton du lecteur, sans dépendre d'une copie nominative.
-    let scanButton = false;
-    const buttonListener = preview.panel.webview.onDidReceiveMessage(message => { if (message.type === 'scanButtonTest') scanButton = message.visible; });
+    let pages = 0;
+    let layout: { full: number; preview: number; scan: number; restored: number; before: number; after: number; gutter: number; scrollable: boolean; keptCanvas: boolean } | undefined;
+    const errors: string[] = [];
+    const scanListener = preview.panel.webview.onDidReceiveMessage(message => {
+      if (message.type === 'scanLayoutTest') layout = message;
+      if (message.type === 'clientError') errors.push(message.error);
+      if (message.type !== 'scanEvent') return;
+      if (message.message.type === 'pageProgress') pages = message.message.total;
+      if (message.message.type === 'pdfError') errors.push(message.message.error);
+    });
     const html = preview.panel.webview.html;
     const nonce = /<script nonce="([^"]+)"/.exec(html)![1];
-    preview.panel.webview.html = html.replace('<script nonce=', `<script nonce="${nonce}">
+    preview.panel.webview.html = html.replace('</head>', '<style>#scan-viewers { max-height: 80px; scrollbar-width: auto; } #scan-viewers::-webkit-scrollbar { width: 18px; }</style></head>')
+      .replace('<script nonce=', `<script nonce="${nonce}">
       const testApi = acquireVsCodeApi();
-      window.acquireVsCodeApi = () => testApi;
-      let clicked = false;
+      const button = document.getElementById('scan');
+      const main = document.getElementById('viewers');
+      const pane = document.getElementById('scan-pane');
+      const host = document.getElementById('scan-viewers');
+      let full, before, canvas;
+      window.acquireVsCodeApi = () => ({ ...testApi, postMessage(message) {
+        const type = message.type === 'scanEvent' ? message.message.type : undefined;
+        if (type === 'ready') before = host.clientWidth;
+        if (type === 'pdfReady' && !canvas) {
+          canvas = host.querySelector('canvas');
+          const preview = main.offsetWidth;
+          const scan = pane.offsetWidth;
+          const after = host.clientWidth;
+          const gutter = host.offsetWidth - after;
+          const scrollable = host.scrollHeight > host.clientHeight;
+          const observer = new MutationObserver(() => {
+            if (!pane.hidden) return;
+            observer.disconnect();
+            const restored = main.offsetWidth;
+            const reopen = new MutationObserver(() => {
+              if (pane.hidden) return;
+              reopen.disconnect();
+              testApi.postMessage({ type: 'scanLayoutTest', full, preview, scan, restored, before, after, gutter, scrollable, keptCanvas: canvas.isConnected });
+            });
+            reopen.observe(pane, { attributes: true, attributeFilter: ['hidden'] });
+            button.click();
+          });
+          observer.observe(pane, { attributes: true, attributeFilter: ['hidden'] });
+          button.click();
+        }
+        testApi.postMessage(message);
+      } });
       window.addEventListener('message', ({ data }) => {
-        if (data?.type !== 'show' || clicked) return;
-        clicked = true;
+        if (data?.type !== 'show' || full !== undefined) return;
         setTimeout(() => {
-          const button = document.getElementById('scan');
-          testApi.postMessage({ type: 'scanButtonTest', visible: !button.hidden });
+          if (full !== undefined || button.hidden) return;
+          full = main.offsetWidth;
           button.click();
         }, 0);
       });
     </script><script nonce=`);
-    const key = path.join(temporary, source);
-    await until(() => previews.scans.entries.has(key), 'Le bouton ouvre le scan préparé');
-    assert.equal(scanButton, true, 'Le bouton est visible pour une copie');
-    const scan = previews.scans.entries.get(key)!;
-    let rendered = false;
-    let pages = 0;
-    let layout: { before: number; after: number; gutter: number; scrollable: boolean; firstCanvasKept: boolean } | undefined;
-    const errors: string[] = [];
-    const scanListener = scan.webview.onDidReceiveMessage(message => {
-      if (message.type === 'pdfReady') rendered = true;
-      if (message.type === 'pageProgress') pages = message.total;
-      if (message.type === 'scanLayoutTest') layout = message;
-      if (['pdfError', 'clientError'].includes(message.type)) errors.push(message.error);
-    });
-    const scanHtml = scan.webview.html;
-    const scanNonce = /<script nonce="([^"]+)"/.exec(scanHtml)![1];
-    // Reproduire un volet qui prend de la place pour afficher sa barre de défilement.
-    scan.webview.html = scanHtml.replace('</head>', `<style>
-      #viewers { max-height: 150px; scrollbar-width: auto; scrollbar-color: auto; }
-      #viewers::-webkit-scrollbar { width: 18px; }
-    </style></head>`).replace('<script nonce=', `<script nonce="${scanNonce}">
-      const testApi = acquireVsCodeApi();
-      const host = document.getElementById('viewers');
-      let before, firstCanvas;
-      window.acquireVsCodeApi = () => ({ ...testApi, postMessage(message) {
-        if (message.type === 'ready') before = host.clientWidth;
-        if (message.type === 'pdfReady' && !firstCanvas) {
-          firstCanvas = host.querySelector('canvas');
-          const after = host.clientWidth;
-          const gutter = host.offsetWidth - after;
-          const scrollable = host.scrollHeight > host.clientHeight;
-          setTimeout(() => testApi.postMessage({ type: 'scanLayoutTest', before, after, gutter, scrollable, firstCanvasKept: firstCanvas.isConnected }), 500);
-        }
-        testApi.postMessage(message);
-      } });
-    </script><script nonce=`);
-    await until(() => rendered && pages > 0 && !!layout, 'Le scan est rendu et paginé dans VS Code');
-    assert.deepEqual(errors, []);
+    await until(() => { assert.deepEqual(errors, []); return pages > 0 && !!layout; }, 'Le scan est rendu, paginé, masqué et réaffiché dans le lecteur');
+    assert.ok(Math.abs(layout!.preview - layout!.scan) <= 1, 'L’aperçu et le scan ont la même largeur');
+    assert.ok(Math.abs(layout!.preview + layout!.scan - layout!.full) <= 1, 'Les deux documents occupent toute la largeur du lecteur');
+    assert.equal(layout!.restored, layout!.full, 'Masquer le scan redonne toute la largeur à l’aperçu');
+    assert.ok(layout!.keptCanvas, 'Réafficher le scan conserve le rendu');
     assert.ok(layout!.scrollable && layout!.gutter > 0, 'Le scan déborde et la barre de défilement occupe de la place');
     assert.equal(layout!.after, layout!.before, 'La barre de défilement ne change pas la largeur du rendu');
-    assert.ok(layout!.firstCanvasKept, 'Le premier rendu du scan reste affiché');
-    assert.equal(scan.viewColumn, preview.panel.viewColumn! + 1, 'Le scan est placé à côté de la correction');
-    assert.equal(await previews.scans.open(project, source, preview.panel.viewColumn), scan, 'Un second clic réutilise le volet');
     scanListener.dispose();
-    buttonListener.dispose();
     const initial = preview.sessions.get('enonce');
     await writeFile(path.join(temporary, 'corrections/2026/ds/test/notes.csv'), notes.join('\n') + '\n');
     await until(() => preview.sessions.get('enonce') !== initial && !!preview.sessions.get('enonce'), 'Statistiques CSV rechargées dans Tinymist');
