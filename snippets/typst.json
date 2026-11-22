@@ -257,15 +257,14 @@
   "MPI — Exercice et solution de cours": {
     "prefix": "²exsol",
     "body": [
-      "#exercice[",
-      "  ${1:Énoncé}",
-      "]",
-      "#solution[",
-      "  ${2:Solution}",
+      "#exercice[${1:Titre}][",
+      "  ${2:Énoncé}",
+      "][",
+      "  ${3:Solution}",
       "]",
       "$0"
     ],
-    "description": "Exercice encadré suivi de sa solution dans un cours (bibliothèque MPI)"
+    "description": "Exercice de cours avec titre, énoncé et solution (bibliothèque MPI)"
   },
   "MPI — Solution avec pause": {
     "prefix": "²solpause",

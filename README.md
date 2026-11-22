@@ -72,7 +72,7 @@ Par exemple, `²exercice-titre` insère `#exercice(titre: [Titre])[…]`. Le tit
 | `²methode` | `#methode[…]` : méthode sans numéro avec double barre latérale ; importer depuis `theoremes` |
 | `²methode-titre` | `#methode(title: [Titre])[…]` : méthode avec titre |
 | `²solution` | Solution de cours |
-| `²exsol` | Exercice de cours suivi de sa solution |
+| `²exsol` | `#exercice[Titre][Énoncé][Solution]` ; vider le champ du titre pour un exercice sans titre |
 | `²solpause` | Solution avec `#pause` |
 | `²remarque` | `#underline[Remarque] : ` |
 | `²intuitivement` | `#underline[Intuitivement] : ` |
