@@ -2,6 +2,8 @@
 
 ## 0.1.0
 
+- Ne plus lancer Nix ni préparer Tinymist automatiquement au démarrage, afin d'éviter les accès aux identifiants GitHub ; l'environnement reste lancé à la demande pour les aperçus et les compilations.
+
 - Distribuer les deux VSIX dans les releases GitHub avec des liens stables ; le conteneur installe automatiquement la dernière version de TP MPI et conserve une copie en cache.
 
 - Regrouper les deux extensions dans ce dépôt : Exercices MPI à la racine et TP MPI dans `tp/`, avec des VSIX et des vérifications indépendants.

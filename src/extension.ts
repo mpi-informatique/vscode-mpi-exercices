@@ -18,7 +18,7 @@ import { Refresh, isLibrarySource } from './refresh';
 import { RecentSources, searchPicker } from './search';
 import { errorStatus } from './errors';
 import { mask } from './typst';
-import { environment, disposeEnvironments } from './environment';
+import { disposeEnvironments } from './environment';
 import { bankCandidates } from './discovery';
 import { CodeLinks, openAssociatedCode } from './code-files';
 import { LinkCompletion } from './link-completion';
@@ -123,7 +123,9 @@ export async function activate(context: vscode.ExtensionContext) {
   }
   async function load(bank: Bank): Promise<void> {
     if (!hasCatalogue(bank)) { await scan(bank, library); return; }
-    const catalogue = parseCatalogue(await readFile(path.join(bank.root, 'build/catalogue.json'), 'utf8'));
+    const cataloguePath = path.join(bank.root, 'build/catalogue.json');
+    if (!existsSync(cataloguePath)) { await scan(bank, library); return; }
+    const catalogue = parseCatalogue(await readFile(cataloguePath, 'utf8'));
     const metadata = new Map(catalogue.map(ex => [ex.fichier, ex]));
     await scan(bank, library);
     for (const item of library.entries) if (item.bank.root === bank.root) item.ex = metadata.get(item.source) ?? item.ex;
@@ -150,10 +152,7 @@ export async function activate(context: vscode.ExtensionContext) {
         const root = await realpath(candidate);
         if (seen.has(root)) continue; seen.add(root);
         const bank: Bank = { root, name: path.basename(root), scope: folder.uri }; banks.push(bank);
-        if (vscode.extensions.getExtension('myriad-dreamin.tinymist') && vscode.workspace.isTrusted)
-          void environment(bank).catch(error => { if (!disposed) runner.output.appendLine(`Préparation de l’environnement [${bank.name}] : ${error}`); });
         try {
-          if (hasCatalogue(bank) && !existsSync(path.join(root, 'build/catalogue.json'))) await regenerateCatalogue(bank, 'catalogue absent à la découverte de la banque');
           await load(bank);
         } catch (error) { report(error); await scan(bank, library); }
         await scan(bank, sheets);
@@ -259,39 +258,6 @@ export async function activate(context: vscode.ExtensionContext) {
       await vscode.commands.executeCommand('tinymist.restartServer');
   }, report, 500);
   context.subscriptions.push(libraryChanges);
-  let preparationTimer: NodeJS.Timeout | undefined;
-  let preparationSource: string | undefined;
-  function schedulePreparation(editor = vscode.window.activeTextEditor): void {
-    clearTimeout(preparationTimer);
-    // Focusing the viewer must keep the reserve for the displayed source.
-    if (!editor) return;
-    const uri = editor.document.uri;
-    if (uri.toString() !== preparationSource) previews.clearPreparation();
-    preparationSource = uri.toString();
-    if (uri.scheme !== 'file' || !uri.path.endsWith('.typ')) return;
-    preparationTimer = setTimeout(() => {
-      void discovery.then(async () => {
-        if (disposed || vscode.window.activeTextEditor?.document.uri.toString() !== uri.toString()) return;
-        const file = await realpath(uri.fsPath);
-        if (disposed || vscode.window.activeTextEditor?.document.uri.toString() !== uri.toString()) return;
-        const bank = banks.filter(bank => file.startsWith(bank.root + path.sep)).sort((a, b) => b.root.length - a.root.length)[0];
-        if (!bank) return;
-        await previews.prepare(bank, path.relative(bank.root, file).split(path.sep).join('/'));
-      }).catch(error => { if (!disposed) runner.output.appendLine(`Préparation de l’aperçu : ${error}`); });
-    }, 600);
-  }
-  context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(schedulePreparation),
-    vscode.workspace.onDidCloseTextDocument(document => {
-      if (document.uri.toString() !== preparationSource) return;
-      clearTimeout(preparationTimer);
-      previews.clearPreparation();
-    }),
-    vscode.workspace.onDidGrantWorkspaceTrust(() => schedulePreparation()),
-    vscode.window.onDidChangeActiveColorTheme(() => schedulePreparation()),
-    vscode.workspace.onDidChangeConfiguration(event => {
-      if (event.affectsConfiguration('mpiExercices') || event.affectsConfiguration('tinymist.serverPath')) schedulePreparation();
-    }),
-    { dispose: () => clearTimeout(preparationTimer) });
   const register = (name: string, action: (...args: any[]) => unknown) => {
     context.subscriptions.push(vscode.commands.registerCommand(`mpiExercices.${name}`, async (...args: unknown[]) => {
       try { const result = await action(...args); errorStatus.clear('extension'); return result; } catch (error) { if (error instanceof vscode.CancellationError) return; report(error); }
@@ -418,12 +384,11 @@ export async function activate(context: vscode.ExtensionContext) {
   let sheetTimer: NodeJS.Timeout | undefined;
   context.subscriptions.push(sheetEditor.changed.event(() => { clearTimeout(sheetTimer); sheetTimer = setTimeout(() => { for (const bank of banks) void scan(bank, sheets).catch(report); }, 120); }), { dispose: () => clearTimeout(sheetTimer) });
   context.subscriptions.push(runner, ...browsers, view, sheetView, previews, currentFile, sheetEditor, errorStatus,
-    vscode.workspace.onDidChangeWorkspaceFolders(() => { void discoverQueued().then(() => schedulePreparation()).catch(report); }),
+    vscode.workspace.onDidChangeWorkspaceFolders(() => { void discoverQueued().catch(report); }),
     vscode.workspace.onDidChangeConfiguration(event => { if (event.affectsConfiguration('mpiExercices.bankPath')) void discoverQueued().catch(report); }),
     { dispose: () => { disposed = true; for (const watcher of watchers) watcher.dispose(); } });
   await discoverQueued();
   context.subscriptions.push(vscode.languages.registerDocumentLinkProvider({ scheme: 'file', pattern: '**/*.typ' }, new CodeLinks(() => banks)));
-  schedulePreparation();
   return {
     getEntries: () => entries().map(({ bank, ex }) => ({ bank: bank.root, ...ex })),
     search: (query: string, filters: Filters = {}) => entries().filter(({ ex }) => matches(ex, query, filters)).map(({ ex }) => ex),

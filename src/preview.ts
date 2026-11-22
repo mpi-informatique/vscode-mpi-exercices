@@ -39,7 +39,10 @@ export class Previews implements vscode.Disposable {
   private disposed = false;
   private preparationEpoch = 0;
   constructor(private readonly context: vscode.ExtensionContext, private readonly exportPdf: (preview: Preview, variant: Variant) => Promise<void>, private readonly hasTinymist = () => !!vscode.extensions.getExtension('myriad-dreamin.tinymist'), private readonly startTinymist = tinymist.start) {
-    this.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(editor => { if (editor?.document.uri.path.endsWith('.typ')) this.editor = editor; }), vscode.window.onDidChangeTextEditorSelection(event => {
+    this.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(editor => {
+      this.clearPreparation();
+      if (editor?.document.uri.path.endsWith('.typ')) this.editor = editor;
+    }), vscode.window.onDidChangeTextEditorSelection(event => {
       const mode = vscode.workspace.getConfiguration('tinymist').get<string>('preview.scrollSync', 'onSelectionChangeByMouse');
       if (mode === 'never' || event.kind === vscode.TextEditorSelectionChangeKind.Command || (mode === 'onSelectionChangeByMouse' && event.kind !== vscode.TextEditorSelectionChangeKind.Mouse)) return;
       clearTimeout(this.timer);
