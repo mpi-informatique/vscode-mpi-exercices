@@ -154,6 +154,7 @@ test('documents : polys et présentations avec leur propre fonction de mise en p
   const slides = '#show: diapositives.with(type: "presentation", titre: "Résumé",)';
   assert.deepEqual(identify(poly), { kind: 'document', type: 'poly', direct: true });
   assert.deepEqual(identify(slides), { kind: 'document', type: 'presentation', direct: true });
+  assert.deepEqual(identify('#show: presentation.with(titre: "Diapos")'), { kind: 'document', type: 'presentation', direct: true });
   assert.equal(sourceMetadata(poly, 'chapitres/automates/poly.typ').titre, 'Automates');
   assert.equal(identify('#show: text.with(font: "Arial")'), undefined);
   assert.equal(identify('// #show: cours.with(type: "poly")'), undefined);

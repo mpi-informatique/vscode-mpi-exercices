@@ -1,14 +1,15 @@
+import { technicalFolders, typeLabels, typeLabel } from '@mpi-informatique/exercices-core';
 import { mask } from './typst';
 
-export { typeLabels, typeLabel } from '@mpi-informatique/exercices-core';
-export const sourceExclusions = '**/{build,lib,templates,ressources,docs,scripts,tmp,node_modules,web,shared,.*}/**';
-export const technicalFolders = new Set(['build', 'lib', 'templates', 'ressources', 'docs', 'scripts', 'tmp', 'node_modules', 'web', 'shared']);
+export { technicalFolders, typeLabels, typeLabel };
+export const sourceExclusions = `**/{${[...technicalFolders].join(',')},.*}/**`;
 export interface SourceKind { kind: 'exercice' | 'document'; type?: string; direct: boolean }
 
 // Literal type declarations are indexable without compiling every file while typing.
 export function identify(text: string, source = ''): SourceKind | undefined {
   const code = mask(text);
   if (/#show\s*:\s*cours-et-presentation\.with\s*\(/.test(code)) return { kind: 'document', type: 'cours-presentation', direct: true };
+  if (/#show\s*:\s*presentation\.with\s*\(/.test(code)) return { kind: 'document', type: 'presentation', direct: true };
   for (const show of code.matchAll(/#show\s*:\s*([\w-]+)\.with\s*\(/g)) {
     const start = show.index! + show[0].length;
     let end = start; let depth = 1;
