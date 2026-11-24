@@ -65,6 +65,7 @@ Par exemple, `²exercice-titre` insère `#exercice(titre: [Titre])[…]`. Le tit
 | Autre préfixe | Contenu inséré |
 | --- | --- |
 | `²sequent` | `#sequent(($A → B, A$, $B$))` : séquent lié au prouveur ; importer depuis le module `logique` de `/load.typ` |
+| `²rappel-regles` | `#rappel-regles(selection: (...), classique: false)` : rappel compact de règles de déduction naturelle ; importer `rappel-regles` et `regles` depuis `logique` |
 | `²lien` | `#lien("…")[…]` avec autocomplétion des ressources publiques |
 | `²telecharger` | `#telecharger("url")[…]` : fichier à télécharger avec un petit symbole ; importer depuis `/load.typ` |
 | `²commentaire` | `#commentaire[…]` : commentaire visible en gris précédé de `//` ; importer depuis `theoremes` |

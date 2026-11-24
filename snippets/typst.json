@@ -4,6 +4,11 @@
     "body": "#sequent((\\$${1:A → B, A}\\$, \\$${2:B}\\$))$0",
     "description": "Séquent lié au prouveur ; importer sequent depuis logique (module de /load.typ)"
   },
+  "MPI — Rappel compact de règles": {
+    "prefix": "²rappel-regles",
+    "body": "#rappel-regles(selection: (${1:regles.implication, regles.negation}), classique: ${2|false,true|})$0",
+    "description": "Rappel compact de règles de déduction naturelle ; importer rappel-regles et regles depuis logique (module de /load.typ)"
+  },
   "MPI — Commentaire d'algorithme": {
     "prefix": "²commentaire",
     "body": "#commentaire[${1:${TM_SELECTED_TEXT}}]$0",
