@@ -7,7 +7,7 @@
   "MPI — Rappel compact de règles": {
     "prefix": "²rappel-regles",
     "body": "#rappel-regles(selection: (${1:regles.implication, regles.negation}), classique: ${2|false,true|})$0",
-    "description": "Rappel compact de règles de déduction naturelle ; importer rappel-regles et regles depuis logique (module de /load.typ)"
+    "description": "Règles de déduction naturelle réparties sur la largeur disponible ; importer rappel-regles et regles depuis logique (module de /load.typ)"
   },
   "MPI — Commentaire d'algorithme": {
     "prefix": "²commentaire",
