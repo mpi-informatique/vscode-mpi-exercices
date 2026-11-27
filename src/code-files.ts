@@ -4,6 +4,9 @@ import { readFile, realpath, stat } from 'node:fs/promises';
 import { Bank } from './runner';
 import { Location, references } from './files';
 import { mask } from './typst';
+import { CodeClickContext, isCodeExtractFile, matchCodeLocation } from './code-jump';
+
+export { CodeClickContext, isCodeExtractFile, matchCodeLocation };
 
 const isCode = (file: string) => /\.(c|h|cc|cpp|hpp|ml|mli|py|sql|js|ts|java|rs|go|sh)$/i.test(file);
 
@@ -61,6 +64,44 @@ export async function openAssociatedCode(location: Location): Promise<void> {
   if (!chosen) return;
   const uri = await fileUri(location.bank, chosen);
   if (uri) await vscode.window.showTextDocument(uri, { viewColumn: vscode.ViewColumn.One, preview: false });
+}
+
+/** Ouvrir le fichier de code correspondant à un clic dans l'aperçu, à la ligne cliquée si trouvée. */
+export async function openCodeAtClick(location: Location, context?: CodeClickContext): Promise<boolean> {
+  const files = await associatedCodes(location);
+  if (!files.length) return false;
+  if (context?.line) {
+    const loaded: { source: string; text: string }[] = [];
+    for (const source of files) {
+      const uri = await fileUri(location.bank, source);
+      if (!uri) continue;
+      const openDoc = vscode.workspace.textDocuments.find(document => document.uri.toString() === uri.toString());
+      loaded.push({ source, text: openDoc?.getText() ?? await readFile(uri.fsPath, 'utf8') });
+    }
+    const matched = matchCodeLocation(loaded, context, path.posix.dirname(location.source));
+    if (matched) {
+      const uri = await fileUri(location.bank, matched.source);
+      if (uri) {
+        const column = vscode.window.visibleTextEditors.find(editor => editor.document.uri.toString() === uri.toString())?.viewColumn ?? vscode.ViewColumn.One;
+        const editor = await vscode.window.showTextDocument(uri, { viewColumn: column, preview: false });
+        const line = Math.min(matched.line, Math.max(0, editor.document.lineCount - 1));
+        editor.selection = new vscode.Selection(line, 0, line, 0);
+        editor.revealRange(editor.selection, vscode.TextEditorRevealType.InCenterIfOutsideViewport);
+        return true;
+      }
+    }
+  }
+  if (files.length === 1) {
+    const uri = await fileUri(location.bank, files[0]);
+    if (uri) {
+      const column = vscode.window.visibleTextEditors.find(editor => editor.document.uri.toString() === uri.toString())?.viewColumn ?? vscode.ViewColumn.One;
+      await vscode.window.showTextDocument(uri, { viewColumn: column, preview: false });
+      return true;
+    }
+    return false;
+  }
+  await openAssociatedCode(location);
+  return true;
 }
 
 export class CodeLinks implements vscode.DocumentLinkProvider {

@@ -16,6 +16,7 @@ import { bankCandidates } from '../src/discovery';
 import { copyDirectory, copyInputs } from '../src/copy-inputs';
 import { copyScans } from '../src/copy-scans';
 import { copySubject } from '../src/copy-subject';
+import { isCodeExtractFile, matchCodeLocation } from '../src/code-jump';
 import { mkdtemp, mkdir, rm, writeFile, readFile, stat, utimes } from 'node:fs/promises';
 import * as path from 'node:path';
 import { tmpdir } from 'node:os';
@@ -493,6 +494,12 @@ test('lecteur : raccourcis de variantes et début/fin depuis le PDF, la barre et
   dispatch('message', { ...boundary, data: { ...boundary.data, boundary: 'middle' } });
   dispatch('message', { ...boundary, source: frames[1].contentWindow, data: { ...boundary.data, token: 'other' } });
   assert.equal(navigations.length, navigationCount, 'Seule l’iframe active authentifiée peut demander un saut');
+  const clickCount = messages.length;
+  dispatch('message', { ...event, data: { type: 'clickContext', token: 'secret', line: 'let x = 1', before: ['(* test *)'], after: [] } });
+  assert.equal(messages.length, clickCount + 1);
+  assert.deepEqual(JSON.parse(JSON.stringify(messages.at(-1))), { type: 'clickContext', line: 'let x = 1', before: ['(* test *)'], after: [] });
+  dispatch('message', { ...event, origin: 'http://foreign.invalid', data: { type: 'clickContext', token: 'secret', line: 'faux' } });
+  assert.equal(messages.length, clickCount + 1, 'Les clics d’une origine étrangère sont ignorés');
 
   dispatch('message', { data: { channel: 'test', type: 'show', native: false, variant: 'enonce', sessions: {} } });
   const host = elements.get('viewers');
@@ -723,4 +730,56 @@ test('découverte : dépôt ouvert, dossier parent et chemin explicite', async (
     await writeFile(path.join(roots[0], 'imbrique/scripts/build.py'), '');
     assert.deepEqual(await bankCandidates(roots[0]), [roots[0]], 'Ne pas chercher dans un dépôt déjà reconnu');
   } finally { await rm(temporary, { recursive: true, force: true }); }
+});
+
+test('saut vers le code : reconnaissance de code-extract, correspondance de ligne et contexte', () => {
+  assert.equal(isCodeExtractFile('/nix/store/abc-packages/local/code-extract/0.2.0/lib.typ'), true);
+  assert.equal(isCodeExtractFile('C:\\packages\\code-extract\\0.2.0\\lib.typ'), true);
+  assert.equal(isCodeExtractFile('/bank/chapitres/logique/exercices/arbres-decision/arbres-decision.typ'), false);
+  const files = [
+    { source: 'chapitres/logique/exercices/arbres-decision/arbres-decision-cor.ml', text: 'type decision =\n  | Feuille of bool\n  | Noeud of int * decision * decision\n\nlet rec non = function\n  | Feuille b -> Feuille (not b)\n  | Noeud (i, g, d) -> Noeud (i, non g, non d)\n' },
+    { source: 'chapitres/logique/cours/cours-logique-propositionnelle/cours-logique-propositionnelle-cor.ml', text: 'type formule =\n  | Top | Bot\n  | Var of int\n  | Non of formule\n' }
+  ];
+  assert.deepEqual(matchCodeLocation(files, { line: '  | Feuille b -> Feuille (not b)', before: ['let rec non = function'], after: ['| Noeud (i, g, d) -> Noeud (i, non g, non d)'] }), { source: files[0].source, line: 5 });
+  assert.deepEqual(matchCodeLocation(files, { line: '| Var of int', before: ['type formule =', '| Top | Bot'], after: ['| Non of formule'] }, 'chapitres/logique/exercices/arbres-decision'), { source: files[1].source, line: 2 });
+  assert.equal(matchCodeLocation(files, { line: '   ' }), undefined);
+});
+
+test('pont Tinymist : extraction du contexte de clic sur une grille à deux colonnes', () => {
+  const html = bridgeHtml('<head></head>', 'http://127.0.0.1:123', 'secret');
+  const listeners = new Map<string, (event?: any) => void>();
+  const messages: any[] = [];
+  const makeSpan = (text: string, left: number, top: number, width: number, height = 14) => ({
+    nodeType: 1, textContent: text,
+    getBoundingClientRect: () => ({ left, top, right: left + width, bottom: top + height, width, height }),
+    querySelector: () => null,
+    contains: (other: unknown) => other === null ? false : undefined,
+    closest: () => page
+  });
+  const left1 = makeSpan('type decision =', 50, 100, 120);
+  const right1 = makeSpan('type formule =', 320, 100, 110);
+  const left2 = makeSpan('| Feuille of bool', 50, 118, 130);
+  const right2 = makeSpan('| Var of int', 320, 118, 95);
+  const page = {
+    querySelectorAll: () => [left1, right1, left2, right2]
+  };
+  const classes = new Set<string>(['exercices-jumps']);
+  runInNewContext(/<script>([\s\S]*?)<\/script>/.exec(html)![1], {
+    parent: { postMessage: (message: unknown) => messages.push(message) },
+    document: {
+      documentElement: { classList: { contains: (name: string) => classes.has(name), toggle: (name: string, on: boolean) => on ? classes.add(name) : classes.delete(name) }, style: { setProperty() {} } },
+      getElementById: () => null,
+      querySelectorAll: () => []
+    },
+    getSelection: () => ({ toString: () => '', removeAllRanges() {} }),
+    addEventListener: (type: string, listener: (event?: any) => void) => listeners.set(type, listener),
+    requestAnimationFrame: () => 0, cancelAnimationFrame: () => undefined,
+    MutationObserver: class { observe() {} }
+  });
+  listeners.get('click')!({ target: right2, clientX: 350, clientY: 122 });
+  assert.deepEqual(JSON.parse(JSON.stringify(messages.at(-1))), { type: 'clickContext', token: 'secret', line: '| Var of int', before: ['type formule ='], after: [] });
+  const count = messages.length;
+  classes.delete('exercices-jumps');
+  listeners.get('click')!({ target: left2, clientX: 80, clientY: 122 });
+  assert.equal(messages.length, count, 'Pas de contexte envoyé lorsque les sauts sont désactivés');
 });

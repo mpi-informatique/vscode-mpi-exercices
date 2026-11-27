@@ -12,8 +12,9 @@ import { identify } from './documents';
 import { copyInputs } from './copy-inputs';
 import { environment } from './environment';
 import { copyPreviewSource } from './typst';
+import { isCodeExtractFile } from './code-files';
 
-export interface SessionOptions { signal?: AbortSignal; dark?: boolean; background?: boolean; canJump?: () => boolean; onError?: (message: string) => void }
+export interface SessionOptions { signal?: AbortSignal; dark?: boolean; background?: boolean; canJump?: () => boolean; onError?: (message: string) => void; onCodeJump?: () => Promise<boolean> }
 export interface Session { id: string; url: string; port: number; connection: MessageConnection; readonly alive: boolean; exportPdf(): Promise<Uint8Array>; previewPosition(document: vscode.TextDocument, position: vscode.Position): [number, number]; attach(options: SessionOptions): void; dispose(): void }
 
 // Tinymist's shared LSP ignores per-preview root/inputs. An isolated LSP
@@ -96,7 +97,13 @@ export async function start(bank: Bank, source: string, variant: Variant, option
   const copyTemplate = info?.type === 'copie' ? path.join(bank.root, 'lib', 'copie.typ') : undefined;
   const showSource = async (jump: { filepath: string; start: [number, number] | null; end: [number, number] | null }) => {
     const target = path.resolve(jump.filepath);
-    if (stopped || options.background || options.canJump?.() === false || !target.startsWith(bank.root + path.sep)) return false;
+    if (stopped || options.background || options.canJump?.() === false) return false;
+    if (isCodeExtractFile(target)) {
+      if (!options.onCodeJump) return false;
+      try { return await options.onCodeJump(); }
+      catch (error) { if (!stopped) output.appendLine(String(error)); return false; }
+    }
+    if (!target.startsWith(bank.root + path.sep)) return false;
     // Rendered copy data can carry a span in the shared template. Keep the copy's cursor in that case.
     const fromCopyTemplate = target === copyTemplate;
     if (!fromCopyTemplate && (!jump.start || !jump.end)) return false;

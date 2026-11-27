@@ -70,6 +70,63 @@ html:not(.exercices-jumps) .typst-jump-ripple,html:not(.exercices-jumps) .typst-
     if (!event.data.jumps) { document.querySelectorAll('.hover').forEach(e => e.classList.remove('hover')); getSelection()?.removeAllRanges(); }
     schedule();
   });
+  function extractClickContext(event) {
+    const target = event.target?.nodeType === 1 ? event.target : event.target?.parentElement;
+    const page = target?.closest?.(pageSelector);
+    if (!page) return;
+    const nodes = [...page.querySelectorAll('.tsel, .typst-html-semantics span')].filter(el => !el.querySelector?.('.tsel, span') && (el.textContent || '').trim().length > 0);
+    if (!nodes.length) return;
+    const items = nodes.map(el => ({ el, text: el.textContent || '', rect: el.getBoundingClientRect() })).filter(item => item.rect.width > 0 && item.rect.height > 0);
+    if (!items.length) return;
+    let hit = items.find(item => item.el === target || item.el.contains?.(target));
+    if (!hit) {
+      let bestDist = Infinity;
+      for (const item of items) {
+        const dx = Math.max(item.rect.left - event.clientX, 0, event.clientX - item.rect.right);
+        const dy = Math.max(item.rect.top - event.clientY, 0, event.clientY - item.rect.bottom);
+        const dist = dx * dx + dy * dy;
+        if (dist < bestDist) { bestDist = dist; hit = item; }
+      }
+      if (!hit || bestDist > 400) return;
+    }
+    const rowTol = Math.max(4, hit.rect.height * 0.5);
+    const rows = [];
+    for (const item of items.sort((a, b) => a.rect.top - b.rect.top || a.rect.left - b.rect.left)) {
+      let row = rows.find(r => Math.abs(r.top - item.rect.top) <= rowTol);
+      if (!row) { row = { top: item.rect.top, items: [] }; rows.push(row); }
+      row.items.push(item);
+    }
+    const segments = [];
+    for (const row of rows) {
+      row.items.sort((a, b) => a.rect.left - b.rect.left);
+      let seg = null;
+      for (const item of row.items) {
+        const gap = seg ? item.rect.left - seg.right : 0;
+        const maxGap = Math.max(24, item.rect.height * 2.5);
+        if (!seg || gap > maxGap) {
+          seg = { top: row.top, left: item.rect.left, right: item.rect.right, text: item.text, hasHit: item === hit };
+          segments.push(seg);
+        } else {
+          if (gap > Math.max(2, item.rect.height * 0.25) && !seg.text.endsWith(' ') && !item.text.startsWith(' ')) seg.text += ' ';
+          seg.text += item.text;
+          seg.right = Math.max(seg.right, item.rect.right);
+          if (item === hit) seg.hasHit = true;
+        }
+      }
+    }
+    const hitSeg = segments.find(s => s.hasHit);
+    if (!hitSeg) return;
+    const colSegs = segments.filter(s => s.right >= hitSeg.left - 20 && s.left <= hitSeg.right + 20).sort((a, b) => a.top - b.top);
+    const idx = colSegs.indexOf(hitSeg);
+    const before = colSegs.slice(Math.max(0, idx - 3), idx).map(s => s.text.trim()).filter(Boolean);
+    const after = colSegs.slice(idx + 1, idx + 4).map(s => s.text.trim()).filter(Boolean);
+    return { line: hitSeg.text.trim(), before, after };
+  }
+  addEventListener('click', event => {
+    if (!document.documentElement.classList.contains('exercices-jumps') || getSelection?.()?.toString()) return;
+    const context = extractClickContext(event);
+    if (context?.line) parent.postMessage({ type: 'clickContext', token, ...context }, '*');
+  }, true);
   addEventListener('keydown', event => {
     if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
     if (['F5', 'F6', 'F7'].includes(event.key)) {

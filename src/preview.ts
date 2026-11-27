@@ -9,7 +9,7 @@ import { errorStatus } from './errors';
 import { copyDirectory } from './copy-inputs';
 import { identify } from './documents';
 import { Preparation } from './preparation';
-import { associatedCodes, openAssociatedCode } from './code-files';
+import { CodeClickContext, associatedCodes, openAssociatedCode, openCodeAtClick } from './code-files';
 import { pdfViewerHtml } from '@mpi-informatique/exercices-core/pdf-viewer';
 import { scrollbarStyle } from './scrollbars';
 import { ScanPreview } from './scan-preview';
@@ -142,6 +142,24 @@ export class Previews implements vscode.Disposable {
     let disposed = false;
     let ready = false;
     let queue = Promise.resolve();
+    let lastClick: { context: CodeClickContext; at: number } | undefined;
+    let waitingClick: ((context: CodeClickContext | undefined) => void) | undefined;
+    const recordClick = (context: CodeClickContext) => {
+      lastClick = { context, at: Date.now() };
+      if (waitingClick) { const resolve = waitingClick; waitingClick = undefined; resolve(context); }
+    };
+    const takeClickContext = async (): Promise<CodeClickContext | undefined> => {
+      if (lastClick && Date.now() - lastClick.at < 500) {
+        const { context } = lastClick;
+        lastClick = undefined;
+        return context;
+      }
+      return await new Promise<CodeClickContext | undefined>(resolve => {
+        const finish = (context: CodeClickContext | undefined) => { clearTimeout(timer); resolve(context); };
+        const timer = setTimeout(() => { if (waitingClick === finish) waitingClick = undefined; resolve(undefined); }, 150);
+        waitingClick = finish;
+      });
+    };
     const enqueue = (action: () => Promise<void>) => { const next = queue.catch(() => undefined).then(action); queue = next; return next; };
     const isDark = () => {
       const theme = vscode.workspace.getConfiguration('mpiExercices', bank.scope).get<string>('previewTheme', 'auto');
@@ -165,6 +183,7 @@ export class Previews implements vscode.Disposable {
       if (preview.native && !sessions.has(value)) {
         await post({ type: 'status', message: 'Démarrage de Tinymist…' });
         const options: tinymist.SessionOptions = { dark: isDark(), canJump: () => preview.jumps && preview.variant === value && panel.visible,
+          onCodeJump: async () => openCodeAtClick({ bank, source }, await takeClickContext()),
           onError: message => { errors.set(value, message); if (ready && !disposed && preview.variant === value) void post({ type: 'compileError', message }); }
         };
         let session = preview.dark === undefined ? await this.prepared.take(this.preparationKey(bank, source, documentType), value) : undefined;
@@ -219,6 +238,9 @@ export class Previews implements vscode.Disposable {
           await describe();
         }
         else if (message?.type === 'code') await openAssociatedCode({ bank, source });
+        else if (message?.type === 'clickContext' && typeof message.line === 'string') {
+          recordClick({ line: message.line, before: Array.isArray(message.before) ? message.before : [], after: Array.isArray(message.after) ? message.after : [] });
+        }
         else if (message?.type === 'scan') await scan?.toggle();
         else if (message?.type === 'scanEvent') await scan?.receive(message.message?.type);
       } catch (error) { if (!disposed) { this.report(error); await post({ type: 'status', message: String(error) }); } }
