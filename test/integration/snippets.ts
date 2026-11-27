@@ -11,14 +11,16 @@ export async function run(_api: unknown, extension: vscode.Extension<unknown>): 
   const prefixes = Object.values(snippets).map(snippet => snippet.prefix);
   assert.ok(prefixes.every(prefix => typeof prefix === 'string' && prefix.startsWith('²')), 'Un seul préfixe avec ² par snippet');
   assert.equal(new Set(prefixes).size, prefixes.length, 'Préfixes uniques');
-  for (const functionName of ['theoreme', 'definition', 'proposition', 'lemme', 'corollaire', 'propriete', 'exemple-bloc', 'exercice', 'probleme', 'algorithme', 'methode']) {
+  for (const functionName of ['theoreme', 'definition', 'proposition', 'lemme', 'corollaire', 'propriete', 'exemple-bloc', 'probleme', 'algorithme', 'methode']) {
     assert.ok(prefixes.includes(`²${functionName}`), `Bloc ${functionName}`);
     assert.ok(prefixes.includes(`²${functionName}-titre`), `Variante titrée ${functionName}`);
   }
+  assert.ok(prefixes.includes('²exercice'), 'Bloc exercice');
+  assert.ok(!prefixes.includes('²exercice-titre') && !prefixes.includes('²exsol'), 'Un seul snippet pour exercice');
   const document = await vscode.workspace.openTextDocument({ language: 'typst', content: '' });
   const editor = await vscode.window.showTextDocument(document);
   try {
-    for (const [prefix, functionName, title] of [['solution', 'solution'], ['methode', 'methode'], ['methode-titre', 'methode', 'Titre'], ['theoreme', 'theoreme'], ['slides-only', 'slides-only'], ['article-only', 'article-only'], ['exercice-titre', 'exercice', 'Titre'], ['algorithme-titre', 'algorithme', 'Titre']]) {
+    for (const [prefix, functionName, title] of [['solution', 'solution'], ['methode', 'methode'], ['methode-titre', 'methode', 'Titre'], ['theoreme', 'theoreme'], ['slides-only', 'slides-only'], ['article-only', 'article-only'], ['algorithme-titre', 'algorithme', 'Titre']]) {
       await vscode.commands.executeCommand('leaveSnippet');
       await editor.edit(edit => edit.replace(new vscode.Range(document.positionAt(0), document.positionAt(document.getText().length)), ''));
       editor.selection = new vscode.Selection(0, 0, 0, 0);
@@ -37,15 +39,16 @@ export async function run(_api: unknown, extension: vscode.Extension<unknown>): 
       await vscode.commands.executeCommand('jumpToNextSnippetPlaceholder');
       assert.equal(editor.selection.active.line, compact ? 1 : 3, 'Tab rejoint la sortie du bloc');
     }
-    for (const prefix of ['question', 'question-bareme', 'partie', 'exsol']) {
+    for (const prefix of ['question', 'question-bareme', 'partie', 'exercice']) {
       await vscode.commands.executeCommand('leaveSnippet');
       await editor.edit(edit => edit.replace(new vscode.Range(document.positionAt(0), document.positionAt(document.getText().length)), ''));
       editor.selection = new vscode.Selection(0, 0, 0, 0);
       const name = Object.keys(snippets).find(name => snippets[name].prefix === `²${prefix}`)!;
       await vscode.commands.executeCommand('editor.action.insertSnippet', { langId: 'typst', name });
       const text = document.getText();
-      if (prefix === 'exsol') {
-        assert.equal(text, '#exercice[Titre][\n  Énoncé\n][\n  Solution\n]\n');
+      if (prefix === 'exercice') {
+        assert.equal(text, '#exercice[][\n  \n][\n  Solution\n]\n');
+        assert.equal(editor.selection.active.line, 0, 'Premier champ : titre vide par défaut');
       } else {
         assert.ok(text.startsWith(prefix === 'partie' ? '#partie(' : '#question'));
         assert.ok(!text.includes('contenu:'));

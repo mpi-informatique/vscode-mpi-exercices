@@ -182,22 +182,14 @@
   "MPI — Exercice": {
     "prefix": "²exercice",
     "body": [
-      "#exercice[",
-      "  ${1:${TM_SELECTED_TEXT}}",
-      "]",
-      "$0"
-    ],
-    "description": "Exercice encadré dans un cours (bibliothèque MPI)"
-  },
-  "MPI — Exercice avec titre": {
-    "prefix": "²exercice-titre",
-    "body": [
-      "#exercice([${1:Titre}])[",
+      "#exercice[${1:}][",
       "  ${2:${TM_SELECTED_TEXT}}",
+      "][",
+      "  ${3:Solution}",
       "]",
       "$0"
     ],
-    "description": "Exercice encadré dans un cours (bibliothèque MPI) ; titre au format « Nom 2 : Titre »"
+    "description": "Exercice de cours avec titre facultatif, énoncé et solution (bibliothèque MPI)"
   },
   "MPI — Problème": {
     "prefix": "²probleme",
@@ -258,18 +250,6 @@
       "$0"
     ],
     "description": "Méthode sans numéro avec titre facultatif et double barre latérale ; importer methode depuis theoremes"
-  },
-  "MPI — Exercice et solution de cours": {
-    "prefix": "²exsol",
-    "body": [
-      "#exercice[${1:Titre}][",
-      "  ${2:Énoncé}",
-      "][",
-      "  ${3:Solution}",
-      "]",
-      "$0"
-    ],
-    "description": "Exercice de cours avec titre, énoncé et solution (bibliothèque MPI)"
   },
   "MPI — Solution avec pause": {
     "prefix": "²solpause",

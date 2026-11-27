@@ -43,7 +43,7 @@ Glisser un fichier sur un dossier permet de le déplacer dans son dépôt : les 
 
 ## Snippets Typst
 
-Dans un fichier `.typ`, saisir **`²` pour ouvrir le menu local Snippets MPI** en haut de la fenêtre. Saisir le nom ou le préfixe pour filtrer, puis valider avec Entrée. Les choix sont déjà en mémoire et ne dépendent pas du serveur de langage. Échap ferme le menu en conservant le `²`. Chaque snippet possède un seul préfixe. Tab passe au champ suivant ; Maj+Tab revient au précédent. **Snippets: Insert Snippet** permet aussi d'insérer le texte sélectionné dans un bloc.
+Dans un fichier `.typ`, saisir **`²` pour ouvrir le menu local Snippets MPI** en haut de la fenêtre (y compris sur du texte sélectionné, qui est alors inséré dans le champ prévu par le snippet). Saisir le nom ou le préfixe pour filtrer, puis valider avec Entrée. Les choix sont déjà en mémoire et ne dépendent pas du serveur de langage. Échap ferme le menu en conservant le `²`. Chaque snippet possède un seul préfixe. Tab passe au champ suivant ; Maj+Tab revient au précédent. **Snippets: Insert Snippet** permet aussi d'insérer le texte sélectionné dans un bloc.
 
 Les noms et préfixes des blocs sont en français, sans accents dans les préfixes. `²exemple` désigne le titre souligné en ligne et `²exemple-bloc` le bloc numéroté. Chaque bloc numéroté possède une variante avec titre, repérée par `-titre` :
 
@@ -56,11 +56,10 @@ Les noms et préfixes des blocs sont en français, sans accents dans les préfix
 | Corollaire | `²corollaire` | `²corollaire-titre` |
 | Propriété | `²propriete` | `²propriete-titre` |
 | Exemple encadré | `²exemple-bloc` | `²exemple-bloc-titre` |
-| Exercice de cours | `²exercice` | `²exercice-titre` |
 | Problème | `²probleme` | `²probleme-titre` |
 | Algorithme | `²algorithme` | `²algorithme-titre` |
 
-Par exemple, `²exercice-titre` insère `#exercice(titre: [Titre])[…]`. Le titre affiché prend la forme **Exercice 2 : Monoïdes et taille**, avec numérotation automatique et un titre saisi dans le premier champ. Sans titre, seul **Exercice 2** est affiché. Ce rendu utilise la bibliothèque MPI mise à jour.
+Par exemple, `²theoreme-titre` insère `#theoreme([Titre])[…]`. Le titre affiché prend la forme **Théorème 2 : Titre**, avec numérotation automatique et un titre saisi dans le premier champ. Sans titre, seul **Théorème 2** est affiché. Ce rendu utilise la bibliothèque MPI mise à jour.
 
 | Autre préfixe | Contenu inséré |
 | --- | --- |
@@ -73,7 +72,7 @@ Par exemple, `²exercice-titre` insère `#exercice(titre: [Titre])[…]`. Le tit
 | `²methode` | `#methode[…]` : méthode sans numéro avec double barre latérale ; importer depuis `theoremes` |
 | `²methode-titre` | `#methode(title: [Titre])[…]` : méthode avec titre |
 | `²solution` | Solution de cours |
-| `²exsol` | `#exercice[Titre][Énoncé][Solution]` ; vider le champ du titre pour un exercice sans titre |
+| `²exercice` | `#exercice[][Énoncé][Solution]` ; titre vide par défaut (placeholder dans le premier champ) |
 | `²solpause` | Solution avec `#pause` |
 | `²remarque` | `#underline[Remarque] : ` |
 | `²intuitivement` | `#underline[Intuitivement] : ` |
